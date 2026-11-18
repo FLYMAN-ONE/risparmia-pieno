@@ -1,0 +1,40 @@
+# Risparmia Pieno
+
+Una web app da installare sul telefono che mostra, su mappa e in lista, i distributori di carburante più economici intorno a te o in un comune che scegli.
+
+> Progetto in sviluppo. Questa pagina si completa man mano.
+
+## Come funziona
+
+L'app ha due parti separate, che non si parlano mai in tempo reale:
+
+1. **La cucina dei dati** (`cucina/`). Ogni mattina, sui server di GitHub, uno script scarica i prezzi ufficiali del Ministero, li controlla e li compatta in un unico file nazionale, uguale per tutti.
+2. **L'app** (`app/`). Gira sul telefono: scarica quel file e calcola i distributori vicini **solo sul telefono**.
+
+## Privacy
+
+- La tua posizione **non lascia mai il telefono** e non viene salvata.
+- Il GPS si chiede solo quando tocchi "Intorno a me".
+- Niente account, statistiche, cookie o servizi di terze parti.
+- L'unico servizio esterno è OpenFreeMap, per le tessere della mappa. La vista Lista non contatta nessuno.
+
+## Struttura delle cartelle
+
+| Cartella | Cosa contiene |
+|---|---|
+| `cucina/` | Lo script che prepara ogni giorno il file dei prezzi, con i suoi test |
+| `app/` | L'app per il telefono, divisa per compiti (dati, posizione, lista, mappa, ricerca, impostazioni, stile) |
+| `condiviso/` | Le regole comuni alle due parti: formato del file prezzi e categorie dei carburanti |
+| `.github/workflows/` | Le automazioni di GitHub: test e aggiornamento mattutino |
+
+## Fonte dei dati
+
+Prezzi e anagrafica dei distributori: Ministero delle Imprese e del Made in Italy (MIMIT), Osservaprezzi Carburanti, rilasciati con licenza [IODL 2.0](https://www.dati.gov.it/iodl/2.0/).
+
+## Cosa fare se…
+
+Questa sezione si completa durante lo sviluppo.
+
+- **…i prezzi non si aggiornano:** _da scrivere nella fase 2._
+- **…il Ministero cambia il formato dei file:** _da scrivere nella fase 1._
+- **…il sito non si apre:** _da scrivere nella fase 9._

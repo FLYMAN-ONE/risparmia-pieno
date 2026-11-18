@@ -1,0 +1,18 @@
+# Documenti di lavoro privati: restano solo sul Mac, non vanno online
+CLAUDE.md
+brief-progetto.md
+ux-design.md
+task.md
+
+# Librerie scaricate automaticamente (si ricreano con "npm install")
+node_modules/
+
+# File generati dalla compilazione dell'app
+dist/
+
+# File di sistema del Mac
+.DS_Store
+
+# Impostazioni locali e segreti: mai nel repository
+.env
+.env.*
