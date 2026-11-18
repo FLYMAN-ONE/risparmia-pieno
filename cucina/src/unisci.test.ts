@@ -26,6 +26,14 @@ describe('unisci sul campione reale', () => {
     const d = unione.distributori.find((x) => x.id === 60012);
     expect(d?.prezzi.every((p) => p.carburante === 'Hi-Q Diesel' || p.euro < 5)).toBe(true);
   });
+
+  it('aggiunge la categoria e tiene il nome originale', () => {
+    const d = unione.distributori.find((x) => x.id === 59183);
+    expect(d?.prezzi).toContainEqual(
+      expect.objectContaining({ carburante: 'HVOlution', categoria: 'hvo', premium: false }),
+    );
+    expect(unione.carburantiSconosciuti).toEqual({});
+  });
 });
 
 describe('unisci con dati inventati', () => {
@@ -41,6 +49,16 @@ describe('unisci con dati inventati', () => {
     const unione = unisci(anagrafica, prezzi);
     expect(unione.distributori[0]?.prezzi).toHaveLength(1);
     expect(unione.prezziOrfani).toBe(1);
+  });
+
+  it('segnala i carburanti sconosciuti', () => {
+    const prezzi = leggiPrezzi(
+      testata('2026-11-17', PREZ) +
+        '1|Idrogeno|9.9|1|01/01/2026 08:00:00\n1|Idrogeno|9.8|0|01/01/2026 08:00:00',
+    );
+    const unione = unisci(anagrafica, prezzi);
+    expect(unione.carburantiSconosciuti).toEqual({ Idrogeno: 2 });
+    expect(unione.distributori[0]?.prezzi[0]?.categoria).toBe('altro');
   });
 
   it('si ferma se i due file sono di giorni diversi', () => {
