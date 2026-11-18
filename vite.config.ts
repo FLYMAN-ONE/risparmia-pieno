@@ -23,6 +23,10 @@ export default defineConfig({
       },
     },
   ],
+  // MapLibre carica un suo "aiutante" (worker) dalla propria cartella: va lasciato così com'è
+  optimizeDeps: {
+    exclude: ['maplibre-gl'],
+  },
   build: {
     outDir: '../dist',
     emptyOutDir: true,

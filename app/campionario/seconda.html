@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="it" data-palette="B" data-tema="chiaro" data-font="titillium" data-icone="lucide" data-movimento="normale">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#F2F1EE" />
+    <title>Campionario 2 — Risparmia Pieno</title>
+    <link rel="stylesheet" href="./campionario.css" />
+    <link rel="stylesheet" href="./seconda.css" />
+  </head>
+  <body>
+    <main>
+      <header class="intestazione">
+        <p class="nota"><a href="./">← Campionario 1</a></p>
+        <h1>Campionario 2</h1>
+        <p class="nota">
+          Seconda tornata, con le scelte già fatte: layout A, palette B, Titillium. Cambia tema, icone e movimento
+          dalla barra in basso.
+        </p>
+      </header>
+
+      <section aria-labelledby="t-icone">
+        <h2 id="t-icone"><span class="passo">Passo 7</span> Icone</h2>
+        <h3>Carburanti: le forme delle etichette UE sulle pompe</h3>
+        <div class="carburanti" data-carburanti></div>
+        <h3>Icone dell'interfaccia: <span data-nome-icone></span></h3>
+        <div class="griglia-icone" data-griglia-icone></div>
+        <div class="bottoni-prova" data-bottoni-prova></div>
+        <h3>Icona dell'app: tre bozze</h3>
+        <div class="home" data-icone-app></div>
+      </section>
+
+      <section aria-labelledby="t-spazi">
+        <h2 id="t-spazi"><span class="passo">Passo 8</span> Spazi e forme</h2>
+        <p class="nota">
+          Griglia da 4 px, margini di 16 px, bottoni alti 48 px con angoli da 12 px, pannello con angoli da 20 px e una
+          sola ombra. Le righe della lista non hanno angoli: solo una linea sottile.
+        </p>
+        <button class="bottone secondario" data-griglia-toggle>Mostra la griglia da 4 px</button>
+        <div class="prova-spazi" data-prova-spazi></div>
+      </section>
+
+      <section aria-labelledby="t-movimento">
+        <h2 id="t-movimento"><span class="passo">Passo 9</span> Movimento</h2>
+        <p class="nota">Tocca per provare. Con "Movimento: ridotto" nella barra vedi come appare con "Riduci movimento".</p>
+        <div class="prova-movimento">
+          <div class="chips" role="group" aria-label="Carburante" data-chips></div>
+          <div class="scheda lista-movimento" data-lista-movimento></div>
+          <button class="bottone grande" data-intorno>
+            <span class="icona" data-icona="locate"></span><span data-intorno-testo>Intorno a me</span>
+          </button>
+          <p class="nota" data-intorno-esito aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section aria-labelledby="t-mappa">
+        <h2 id="t-mappa"><span class="passo">Passo 10</span> Stile della mappa</h2>
+        <p class="nota">
+          Mappa vera di OpenFreeMap con il gasolio self entro 15 km da Gallarate. Si carica solo quando tocchi il
+          bottone, come nell'app. La posizione blu è finta.
+        </p>
+        <div class="contenitore-mappa" data-contenitore-mappa>
+          <button class="bottone" data-carica-mappa><span class="icona" data-icona="map"></span>Mappa</button>
+        </div>
+      </section>
+
+      <section aria-labelledby="t-testi">
+        <h2 id="t-testi"><span class="passo">Passo 11</span> Testi e messaggi</h2>
+        <div class="messaggi" data-messaggi></div>
+      </section>
+
+      <footer class="nota piede">
+        Prezzi: MIMIT, Osservaprezzi Carburanti, licenza IODL 2.0. Mappa: OpenFreeMap, © OpenMapTiles, dati ©
+        OpenStreetMap. Icone: Lucide (ISC) e Phosphor (MIT).
+      </footer>
+    </main>
+
+    <!-- Scheda del distributore (passo 9) -->
+    <div class="velo" data-velo hidden></div>
+    <div class="pannello-scheda" data-pannello role="dialog" aria-modal="true" aria-labelledby="scheda-titolo" hidden></div>
+
+    <nav class="barra" aria-label="Opzioni del campionario">
+      <label>Tema
+        <select data-scelta="tema">
+          <option value="chiaro">Chiaro</option>
+          <option value="scuro">Scuro</option>
+        </select>
+      </label>
+      <label>Icone
+        <select data-scelta="icone">
+          <option value="lucide">Lucide</option>
+          <option value="phosphor">Phosphor</option>
+        </select>
+      </label>
+      <label>Movimento
+        <select data-scelta="movimento">
+          <option value="normale">Normale</option>
+          <option value="ridotto">Ridotto</option>
+        </select>
+      </label>
+      <label>Mappa
+        <select data-scelta="mappa">
+          <option value="desaturata">Desaturata</option>
+          <option value="originale">Originale</option>
+        </select>
+      </label>
+    </nav>
+
+    <script type="module" src="./seconda.ts"></script>
+  </body>
+</html>

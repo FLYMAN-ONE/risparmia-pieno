@@ -1,0 +1,136 @@
+/* Campionario 2 (passi 7-11). Valori PROVVISORI, come in campionario.css. */
+
+:root {
+  --durata-pannello: 250ms;
+  --durata-lista: 180ms;
+  --curva: cubic-bezier(0.32, 0.72, 0, 1); /* parte veloce e si posa dolcemente */
+  --ombra-pannello: 0 -8px 32px rgb(0 0 0 / 0.18);
+}
+[data-movimento='ridotto'] { --durata-pannello: 0ms; --durata-lista: 0ms; }
+@media (prefers-reduced-motion: reduce) { :root { --durata-pannello: 0ms; --durata-lista: 0ms; } }
+
+a { color: var(--azione-testo, var(--azione)); }
+
+.icona { display: inline-flex; width: 24px; height: 24px; flex: none; }
+.icona svg { width: 100%; height: 100%; }
+/* Phosphor è disegnato su 256 unità e pieno; Lucide su 24 a tratto: stessa dimensione a schermo */
+
+/* ——— Passo 7 ——— */
+.carburanti { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-carburante {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px 0 8px;
+  border-radius: 999px; background: var(--superficie); font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--testo) 18%, transparent);
+}
+.forma-ue { width: 36px; height: 36px; flex: none; color: var(--testo); }
+.forma-ue text { font-family: var(--font-testo); font-weight: 700; fill: currentColor; }
+
+.griglia-icone { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.griglia-icone div {
+  background: var(--superficie); padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: var(--t-minimo); color: var(--testo-2); text-align: center;
+}
+.griglia-icone .icona { color: var(--testo); width: 28px; height: 28px; }
+.bottoni-prova { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.bottone { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+
+.home {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 28px 16px; border-radius: 24px;
+  background: linear-gradient(160deg, #3A6EA5, #8C6FB0 55%, #E39B6B);
+}
+[data-tema='scuro'] .home { background: linear-gradient(160deg, #0E1B2B, #2A2140 55%, #3D2A22); }
+.home figure { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #fff; font-size: 0.75rem; text-shadow: 0 1px 2px rgb(0 0 0 / 0.4); }
+.home svg { width: 64px; height: 64px; border-radius: 15px; box-shadow: 0 2px 8px rgb(0 0 0 / 0.25); }
+
+/* ——— Passo 8 ——— */
+.prova-spazi { position: relative; margin-top: 12px; background: var(--sfondo); }
+.prova-spazi.griglia::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgb(255 0 90 / 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 0 90 / 0.18) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+.prova-spazi.griglia .riga, .prova-spazi.griglia .bottone { outline: 1px dashed rgb(255 0 90 / 0.6); }
+.prova-spazi .foglio {
+  background: var(--superficie); border-radius: var(--raggio-pannello) var(--raggio-pannello) 0 0;
+  box-shadow: var(--ombra-pannello); padding: 8px 16px 16px; margin-top: 16px;
+}
+.prova-spazi .azioni { display: flex; gap: 8px; margin-top: 16px; }
+.prova-spazi .azioni .bottone { flex: 1; }
+
+/* ——— Passo 9 ——— */
+.prova-movimento { display: flex; flex-direction: column; gap: 12px; }
+.chips { display: flex; gap: 8px; }
+.chip {
+  appearance: none; font: inherit; font-weight: 600; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 0;
+  background: var(--superficie); color: var(--testo); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--testo) 18%, transparent);
+  display: inline-flex; align-items: center; gap: 6px; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+}
+.chip[aria-pressed='true'] { background: var(--testo); color: var(--superficie); box-shadow: none; }
+.chip .forma-ue { width: 24px; height: 24px; }
+.chip[aria-pressed='true'] .forma-ue { color: var(--superficie); }
+.lista-movimento { padding-top: 4px; padding-bottom: 4px; }
+.lista-movimento .riga { cursor: pointer; }
+.lista-movimento .riga:active { background: color-mix(in srgb, var(--testo) 6%, transparent); }
+.lista-movimento .riga .icona { width: 20px; height: 20px; color: var(--testo-2); }
+.bottone.grande { min-height: 56px; font-size: 1.05rem; }
+[data-intorno][aria-busy='true'] .icona { animation: cerca 1s ease-in-out infinite; }
+@keyframes cerca { 50% { opacity: 0.35; } }
+[data-movimento='ridotto'] [data-intorno][aria-busy='true'] .icona { animation: none; }
+@media (prefers-reduced-motion: reduce) { [data-intorno][aria-busy='true'] .icona { animation: none; } }
+.vecchio { color: var(--testo-2); display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-dettaglio); }
+.vecchio .icona { width: 16px; height: 16px; }
+.riga.e-vecchio .prezzo { opacity: 0.55; }
+
+/* Pannello dal basso: sale e scende lungo la stessa strada */
+.velo {
+  position: fixed; inset: 0; z-index: 20; background: rgb(0 0 0 / 0.35);
+  opacity: 0; transition: opacity var(--durata-pannello) ease;
+}
+.velo.aperto { opacity: 1; }
+.pannello-scheda {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; max-width: 720px; margin: 0 auto;
+  background: var(--superficie); color: var(--testo);
+  border-radius: var(--raggio-pannello) var(--raggio-pannello) 0 0; box-shadow: var(--ombra-pannello);
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(100%); transition: transform var(--durata-pannello) var(--curva);
+  overscroll-behavior: contain;
+}
+.pannello-scheda.aperto { transform: translateY(0); }
+[data-movimento='ridotto'] .pannello-scheda { transition: opacity 150ms ease; transform: none; opacity: 0; }
+[data-movimento='ridotto'] .pannello-scheda.aperto { opacity: 1; }
+.pannello-scheda .chiudi { position: absolute; top: 8px; right: 8px; width: 48px; height: 48px; border: 0; background: none; color: var(--testo-2); display: grid; place-items: center; }
+.pannello-scheda h2 { margin: 8px 48px 4px 0; }
+.pannello-scheda .tabella { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
+.pannello-scheda .tabella td { padding: 8px 0; border-top: 1px solid color-mix(in srgb, var(--testo) 10%, transparent); }
+.pannello-scheda .tabella td:last-child { text-align: right; }
+
+/* ——— Passo 10 ——— */
+.contenitore-mappa {
+  position: relative; height: 70svh; min-height: 360px; overflow: hidden; border-radius: 16px;
+  background: color-mix(in srgb, var(--sfondo) 80%, var(--testo-2)); display: grid; place-items: center;
+}
+.contenitore-mappa .mappa-vera { position: absolute; inset: 0; }
+.contenitore-mappa.desaturata .maplibregl-canvas { filter: saturate(0.15) contrast(0.95); }
+.etichetta-prezzo {
+  font-family: var(--font-prezzo); font-weight: var(--peso-prezzo); font-variant-numeric: tabular-nums;
+  font-size: 0.95rem; line-height: 1; padding: 6px 8px; border-radius: 8px; border: 0; cursor: pointer;
+  background: var(--superficie); color: var(--media); box-shadow: 0 1px 4px rgb(0 0 0 / 0.28); white-space: nowrap;
+}
+.etichetta-prezzo.conveniente { color: var(--conveniente); }
+.etichetta-prezzo.caro { color: var(--caro); }
+.etichetta-prezzo.gruppo { font-family: var(--font-testo); font-weight: 600; color: var(--testo); }
+.etichetta-prezzo.gruppo b { font-family: var(--font-prezzo); font-weight: var(--peso-prezzo); color: var(--media); }
+.etichetta-prezzo.gruppo b.conveniente { color: var(--conveniente); }
+.etichetta-prezzo.gruppo b.caro { color: var(--caro); }
+.tu-mappa { width: 18px; height: 18px; border-radius: 50%; background: #2F7BEF; border: 3px solid #fff; box-shadow: 0 0 0 8px rgb(47 123 239 / 0.2); }
+
+/* ——— Passo 11 ——— */
+.messaggi { display: flex; flex-direction: column; gap: 12px; }
+.messaggio { background: var(--superficie); padding: 16px; display: flex; gap: 12px; align-items: flex-start; }
+.messaggio .icona { color: var(--testo-2); margin-top: 2px; }
+.messaggio p { margin: 0 0 8px; }
+.messaggio .quando { font-size: var(--t-minimo); color: var(--testo-2); text-transform: none; }
+.messaggio.attenzione { box-shadow: inset 4px 0 0 var(--caro); }
+.barra { grid-template-columns: repeat(4, 1fr); }
