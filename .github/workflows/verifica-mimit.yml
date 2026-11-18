@@ -23,5 +23,13 @@ jobs:
         with:
           node-version: 26
 
+      - name: Diagnosi della connessione
+        continue-on-error: true
+        run: |
+          getent ahosts www.mimit.gov.it || true
+          curl -4 -sS -o /dev/null --connect-timeout 30 --max-time 120 -w "IPv4: HTTP %{http_code} %{size_download} byte %{time_total}s\n" https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv || echo "IPv4 fallito"
+          curl -6 -sS -o /dev/null --connect-timeout 30 --max-time 120 -w "IPv6: HTTP %{http_code} %{size_download} byte %{time_total}s\n" https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv || echo "IPv6 fallito"
+          curl -sS -o /dev/null --connect-timeout 30 -w "Sito di prova (dati.gov.it): HTTP %{http_code}\n" https://www.dati.gov.it/ || echo "anche dati.gov.it fallisce"
+
       - name: Scarica i file MIMIT
         run: node cucina/src/verifica-download.ts
