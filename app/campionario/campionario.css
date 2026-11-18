@@ -24,6 +24,16 @@
   --sfondo: #1C2126; --superficie: #262C32; --testo: #EEF1F3; --testo-2: #A3AEB8;
   --azione: #F5A524; --su-azione: #1C2126; --conveniente: #43C59A; --media: #A3AEB8; --caro: #FF8A4C; --cifre: #F5A524;
 }
+/* S = "B semaforo" (richiesta di Giuseppe del 18/11/2026): B con prezzi verde / giallo / rosso,
+   azione neutra per non confondere il giallo dei prezzi con l'ambra dei bottoni. Versione chiara nuova. */
+[data-palette='S'][data-tema='scuro'] {
+  --sfondo: #1C2126; --superficie: #262C32; --testo: #EEF1F3; --testo-2: #A3AEB8;
+  --azione: #EEF1F3; --su-azione: #1C2126; --conveniente: #3DD68C; --media: #F5C542; --caro: #FF6B5B; --cifre: var(--testo);
+}
+[data-palette='S'][data-tema='chiaro'] {
+  --sfondo: #EEF0F2; --superficie: #FFFFFF; --testo: #1C2126; --testo-2: #56616B;
+  --azione: #1C2126; --su-azione: #FFFFFF; --conveniente: #0E7C3A; --media: #8F6500; --caro: #C8261E; --cifre: var(--testo);
+}
 [data-palette='C'][data-tema='chiaro'] {
   --sfondo: #F5F6F4; --superficie: #FFFFFF; --testo: #1A1F1C; --testo-2: #5D665F;
   --azione: #127A4A; --su-azione: #FFFFFF; --conveniente: #127A4A; --media: var(--testo); --caro: var(--testo); --cifre: var(--testo);
@@ -110,7 +120,11 @@ h3 { font-size: 1rem; margin: 24px 0 8px; font-weight: 600; }
 .fascia-media .prezzo { color: var(--media); }
 .fascia-caro .prezzo { color: var(--caro); }
 [data-palette='B'] .fascia-media .prezzo { color: var(--cifre); }
-.segno { font-size: var(--t-dettaglio); color: var(--testo-2); width: 5.5ch; text-align: right; }
+.simbolo { font-family: var(--font-testo); font-weight: 700; width: 1.1em; text-align: center; }
+.fascia-conveniente .simbolo { color: var(--conveniente); }
+.fascia-media .simbolo { color: var(--media); }
+.fascia-caro .simbolo { color: var(--caro); }
+.segno { font-size: var(--t-dettaglio); color: var(--testo-2); text-align: right; white-space: nowrap; }
 
 .bottone {
   appearance: none; border: 0; border-radius: var(--raggio-bottone);

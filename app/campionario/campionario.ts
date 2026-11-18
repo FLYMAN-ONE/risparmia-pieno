@@ -40,11 +40,15 @@ function eroe(v: Voce): string {
   </div>`;
 }
 
-function righe(voci: readonly Voce[], conDelta = false): string {
+const SIMBOLI = { conveniente: '↓', media: '≈', caro: '↑' } as const;
+
+function righe(voci: readonly Voce[], conDelta = false, conSimboli = false): string {
   return voci
     .map((v) => {
       const i = lista.indexOf(v);
-      return `<div class="riga fascia-${fascia(i, lista.length)}">
+      const f = fascia(i, lista.length);
+      return `<div class="riga fascia-${f}">
+        ${conSimboli ? `<span class="simbolo" aria-label="${f}">${SIMBOLI[f]}</span>` : ''}
         <span class="prezzo">${euro(v.euro)}</span>
         <span class="chi">${esc(v.bandiera)}</span>
         ${conDelta ? `<span class="segno">${differenza(v.euro - media)}</span>` : ''}
@@ -85,6 +89,8 @@ $('[data-layout-b]').innerHTML = `
 
 // ——— Passo 4: fasce di colore ———
 $('[data-fasce]').innerHTML = eroe(primo!) + righe(altri, true);
+// Un distributore ogni tre, così compaiono tutte le fasce
+$('[data-fasce-simboli]').innerHTML = righe(lista.filter((_, i) => i % 3 === 0), true, true);
 
 // ——— Passo 5: confronto font ———
 const font = [
@@ -169,7 +175,7 @@ function aggiornaCampioni(): void {
 }
 
 // ——— Barra delle opzioni ———
-const nomiPalette = { A: '“Segnaletica”', B: '“Totem”', C: '“Risparmio”' } as const;
+const nomiPalette = { A: '“Segnaletica”', B: '“Totem”', C: '“Risparmio”', S: '“Totem” semaforo' } as const;
 function applica(): void {
   const scelta = (nome: string) => $<HTMLSelectElement>(`[data-scelta="${nome}"]`).value;
   const palette = scelta('palette') as keyof typeof nomiPalette;
@@ -179,6 +185,7 @@ function applica(): void {
   main.dataset['vista'] = scelta('vista');
   $('[data-nome-palette]').textContent = `${palette} ${nomiPalette[palette]}`;
   $('[data-avviso-totem]').hidden = !(palette === 'B' && scelta('tema') === 'chiaro');
+  $('[data-con-simboli]').hidden = palette !== 'S';
   document
     .querySelector('meta[name="theme-color"]')
     ?.setAttribute('content', getComputedStyle(html).getPropertyValue('--sfondo').trim());
