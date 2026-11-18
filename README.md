@@ -39,6 +39,7 @@ Da scrivere nel Terminale, dentro la cartella del progetto.
 | `npm test` | Esegue tutti i test: devono risultare tutti "passed" |
 | `npm run check` | Controlla il codice con TypeScript: se non scrive nulla, è tutto a posto |
 | `npm run dev` | Apre l'app in anteprima su http://localhost:5173 |
+| `npm run campionario` | Apre l'anteprima anche agli altri dispositivi del Wi-Fi di casa: dal telefono vai su http://IP-del-Mac:5173/campionario/ |
 | `npm run build` | Prepara la versione finale dell'app nella cartella `dist/` |
 | `npm run cucina -- <cartella CSV> <file.json>` | Legge i due file MIMIT, li controlla e scrive il file nazionale dei prezzi |
 

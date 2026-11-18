@@ -14,7 +14,8 @@
     "check": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "cucina": "node cucina/src/cucina.ts"
+    "cucina": "node cucina/src/cucina.ts",
+    "campionario": "vite --host"
   },
   "devDependencies": {
     "@types/node": "26.6.6",
