@@ -3,6 +3,8 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   // L'app vive nella cartella app/
   root: 'app',
+  // Percorsi relativi: il sito vive in flyman-one.github.io/risparmia-pieno/
+  base: './',
   build: {
     outDir: '../dist',
     emptyOutDir: true,

@@ -1,0 +1,71 @@
+# Pubblica il sito su GitHub Pages: l'app più l'ultimo file prezzi buono.
+# Parte da sola quando cambia il codice (push su main), quando arrivano dati nuovi
+# (chiamata da "Ricevi dati MIMIT") oppure a mano.
+name: Pubblica
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+# Una pubblicazione alla volta; quella in corso non viene interrotta
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  costruisci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Scarica il codice
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prepara Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          cache: npm
+
+      - name: Costruisce l'app
+        run: |
+          npm ci
+          npm run build
+
+      - name: Aggiunge l'ultimo file prezzi buono
+        run: |
+          mkdir -p dist/dati
+          if gh release download dati-pubblicati --pattern prezzi.json --dir dist/dati; then
+            echo "File prezzi del $(node -p 'require("./dist/dati/prezzi.json").dataEstrazione')"
+          else
+            echo "::warning::Nessun file prezzi ancora pubblicato: il sito esce senza dati"
+          fi
+
+      - name: Prepara il pacchetto per Pages
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+  pubblica:
+    needs: costruisci
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pubblicazione.outputs.page_url }}
+    steps:
+      - name: Pubblica su GitHub Pages
+        id: pubblicazione
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

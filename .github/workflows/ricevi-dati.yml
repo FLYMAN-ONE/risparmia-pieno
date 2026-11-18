@@ -1,13 +1,14 @@
-# Riceve i file MIMIT consegnati dall'iPhone e li controlla.
+# Riceve i file MIMIT consegnati dall'iPhone, li elabora e, se sono nuovi e sani, li pubblica.
 # Il Comando Rapido carica uno zip nella release "dati-grezzi" e poi avvia questa azione.
-# Nella fase 2 qui si aggiungeranno l'elaborazione e la pubblicazione del file prezzi.
+# Se i controlli di qualità falliscono, non si pubblica nulla: resta il file del giorno prima
+# e GitHub manda un'email per l'azione fallita.
 name: Ricevi dati MIMIT
 
 on:
   workflow_dispatch:
 
 permissions:
-  contents: write # serve solo per eliminare le consegne vecchie dalla release
+  contents: write # per conservare il file buono e pulire le consegne vecchie
 
 # Se arrivano due consegne insieme, si elaborano una alla volta
 concurrency:
@@ -15,13 +16,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ricevi:
+  elabora:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
+    outputs:
+      nuovo: ${{ steps.confronto.outputs.nuovo }}
     steps:
+      - name: Scarica il codice
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prepara Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+
       - name: Scarica l'ultima consegna
         run: |
           nome=$(gh release view dati-grezzi --json assets \
@@ -30,11 +43,11 @@ jobs:
             echo "::error::Nessuna consegna trovata nella release dati-grezzi"; exit 1
           fi
           echo "Consegna: $nome"
-          mkdir -p consegna
-          gh release download dati-grezzi --pattern "$nome" --dir consegna
+          mkdir -p ../consegna
+          gh release download dati-grezzi --pattern "$nome" --dir ../consegna
 
-      - name: Estrae e controlla i file
-        working-directory: consegna
+      - name: Estrae i file
+        working-directory: ../consegna
         run: |
           zip=$(ls mimit-*.zip)
           # Lo zip deve contenere esattamente i due file attesi, di dimensione ragionevole
@@ -48,18 +61,30 @@ jobs:
             echo "::error::File troppo grandi ($totale byte)"; exit 1
           fi
           unzip -q -j "$zip" anagrafica_impianti_attivi.csv prezzo_alle_8.csv -d .
-          for f in anagrafica_impianti_attivi.csv prezzo_alle_8.csv; do
-            prima=$(head -1 "$f")
-            echo "$f: $(wc -l < "$f") righe, $(wc -c < "$f") byte, riga 1: $prima"
-            if ! echo "$prima" | grep -Eq '^Estrazione del [0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
-              echo "::error::$f: la prima riga non è la data di estrazione"; exit 1
-            fi
-          done
-          head -2 anagrafica_impianti_attivi.csv | tail -1 | grep -q '^idImpianto|Gestore|Bandiera|Tipo Impianto|Nome Impianto|Indirizzo|Comune|Provincia|Latitudine|Longitudine' \
-            || { echo "::error::Intestazione dell'anagrafica cambiata"; exit 1; }
-          head -2 prezzo_alle_8.csv | tail -1 | grep -q '^idImpianto|descCarburante|prezzo|isSelf|dtComu' \
-            || { echo "::error::Intestazione dei prezzi cambiata"; exit 1; }
-          echo "Controlli superati."
+
+      - name: Cucina (lettura, controlli di qualità, file prezzi)
+        run: node cucina/src/cucina.ts ../consegna ../prezzi.json
+
+      - name: Confronta con il file già pubblicato
+        id: confronto
+        run: |
+          nuova=$(node -p 'require("../prezzi.json").dataEstrazione')
+          if gh release download dati-pubblicati --pattern prezzi.json --output ../pubblicato.json; then
+            vecchia=$(node -p 'require("../pubblicato.json").dataEstrazione')
+          else
+            vecchia="nessuna"
+          fi
+          echo "Dati consegnati: $nuova · già pubblicati: $vecchia"
+          if [ "$vecchia" != "nessuna" ] && [[ ! "$nuova" > "$vecchia" ]]; then
+            echo "Niente di nuovo: i dati del $nuova sono già pubblicati."
+            echo "nuovo=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "nuovo=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Conserva il nuovo file buono
+        if: steps.confronto.outputs.nuovo == 'true'
+        run: gh release upload dati-pubblicati ../prezzi.json --clobber
 
       - name: Tiene solo le ultime 10 consegne
         run: |
@@ -68,3 +93,12 @@ jobs:
           | while read -r vecchio; do
               echo "Elimino $vecchio"; gh release delete-asset dati-grezzi "$vecchio" --yes
             done
+
+  pubblica:
+    needs: elabora
+    if: needs.elabora.outputs.nuovo == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pubblica.yml

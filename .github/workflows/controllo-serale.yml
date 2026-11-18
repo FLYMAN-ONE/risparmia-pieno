@@ -1,0 +1,45 @@
+# Controllo serale: verifica che i prezzi di oggi siano stati pubblicati.
+# Se mancano, l'azione fallisce e GitHub manda un'email: basta avviare a mano
+# il Comando Rapido "Consegna dati MIMIT".
+#
+# Orario: 20:30 UTC, cioè 21:30 in Italia con l'ora solare e 22:30 con l'ora legale.
+# È dopo la seconda consegna automatica dell'iPhone (19:30).
+#
+# Fa anche da "anti-sospensione": GitHub disattiva le azioni programmate dei repository
+# senza attività da 60 giorni. Ogni sera questa azione le riattiva.
+name: Controllo serale
+
+on:
+  schedule:
+    - cron: '30 20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write # per riattivare le azioni programmate
+
+jobs:
+  controlla:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Anti-sospensione dopo 60 giorni
+        run: gh workflow enable controllo-serale.yml
+
+      - name: Controlla la data dei prezzi pubblicati
+        run: |
+          # Il file del Ministero di oggi contiene i prezzi di ieri alle 8
+          attesa=$(date -u -d 'yesterday' +%Y-%m-%d)
+          if ! gh release download dati-pubblicati --pattern prezzi.json --output prezzi.json; then
+            echo "::error::Nessun file prezzi pubblicato"; exit 1
+          fi
+          pubblicata=$(jq -r .dataEstrazione prezzi.json)
+          echo "Prezzi pubblicati: del $pubblicata · attesi: del $attesa"
+          if [[ "$pubblicata" < "$attesa" ]]; then
+            echo "::error::I prezzi di oggi non sono arrivati (pubblicati: $pubblicata). Avvia a mano il Comando Rapido 'Consegna dati MIMIT'."
+            exit 1
+          fi
+          echo "Tutto a posto."
