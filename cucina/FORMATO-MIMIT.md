@@ -42,4 +42,5 @@ Riga 1: data di estrazione. Riga 2: intestazione. Dalla riga 3: i dati.
 ## Raggiungibilità
 
 - Dal Mac (Italia): ok, circa 3 secondi per file.
-- **Dai server di GitHub Actions: non raggiungibile** (timeout di connessione, prova del 18/11/2026). Vedi la decisione da prendere in task.md.
+- **Dai server di GitHub Actions: non raggiungibile** (timeout di connessione, prova del 18/11/2026; anche dati.gov.it risponde 403).
+- Soluzione scelta: i file li scarica l'iPhone con un Comando Rapido e li consegna a GitHub. Vedi `COMANDO-RAPIDO.md`.
