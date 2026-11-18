@@ -27,6 +27,18 @@ L'app ha due parti separate, che non si parlano mai in tempo reale:
 | `condiviso/` | Le regole comuni alle due parti: formato del file prezzi e categorie dei carburanti |
 | `.github/workflows/` | Le automazioni di GitHub: test e aggiornamento mattutino |
 
+## Comandi utili
+
+Da scrivere nel Terminale, dentro la cartella del progetto.
+
+| Comando | Cosa fa |
+|---|---|
+| `npm install` | Scarica gli strumenti di lavoro (solo la prima volta, o dopo un aggiornamento) |
+| `npm test` | Esegue tutti i test: devono risultare tutti "passed" |
+| `npm run check` | Controlla il codice con TypeScript: se non scrive nulla, è tutto a posto |
+| `npm run dev` | Apre l'app in anteprima su http://localhost:5173 |
+| `npm run build` | Prepara la versione finale dell'app nella cartella `dist/` |
+
 ## Fonte dei dati
 
 Prezzi e anagrafica dei distributori: Ministero delle Imprese e del Made in Italy (MIMIT), Osservaprezzi Carburanti, rilasciati con licenza [IODL 2.0](https://www.dati.gov.it/iodl/2.0/).

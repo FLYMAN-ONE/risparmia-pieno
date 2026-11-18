@@ -1,0 +1,23 @@
+{
+  "name": "risparmia-pieno",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PWA per trovare i distributori di carburante più economici, con dati MIMIT. La posizione non lascia il telefono.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "check": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "vite": "8.3.8",
+    "vitest": "5.1.1"
+  }
+}

@@ -16,3 +16,6 @@ dist/
 # Impostazioni locali e segreti: mai nel repository
 .env
 .env.*
+
+# Impostazioni locali di Claude Code
+.claude/
