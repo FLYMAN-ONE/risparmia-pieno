@@ -5,6 +5,24 @@ export default defineConfig({
   root: 'app',
   // Percorsi relativi: il sito vive in flyman-one.github.io/risparmia-pieno/
   base: './',
+  plugins: [
+    {
+      // In anteprima, "/campionario" senza la barra finale porta al campionario
+      // invece che alla pagina principale.
+      name: 'campionario-senza-barra',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          if (req.url === '/campionario') {
+            res.statusCode = 301;
+            res.setHeader('Location', '/campionario/');
+            res.end();
+            return;
+          }
+          next();
+        });
+      },
+    },
+  ],
   build: {
     outDir: '../dist',
     emptyOutDir: true,
