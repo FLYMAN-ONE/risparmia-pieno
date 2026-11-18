@@ -1,0 +1,27 @@
+# Verifica, da avviare a mano, che i file MIMIT si scarichino dai server di GitHub.
+# Nella fase 2 diventerà l'aggiornamento automatico di ogni mattina.
+name: Verifica download MIMIT
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verifica:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Scarica il codice
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prepara Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+
+      - name: Scarica i file MIMIT
+        run: node cucina/src/verifica-download.ts
