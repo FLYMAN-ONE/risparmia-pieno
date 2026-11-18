@@ -21,7 +21,7 @@ const media = lista.reduce((s, v) => s + v.euro, 0) / lista.length;
 const ordinati = lista.map((v) => v.euro).sort((a, b) => a - b);
 const soglia1 = ordinati[Math.floor(ordinati.length / 3)]!;
 const soglia2 = ordinati[Math.floor((2 * ordinati.length) / 3)]!;
-function fascia(indice: number, _totale: number): 'conveniente' | 'media' | 'caro' {
+function fascia(indice: number, _totale: number): Fascia {
   const v = lista[indice]!.euro;
   return v < soglia1 ? 'conveniente' : v < soglia2 ? 'media' : 'caro';
 }
@@ -40,15 +40,19 @@ function eroe(v: Voce): string {
   </div>`;
 }
 
-const SIMBOLI = { conveniente: '↓', media: '≈', caro: '↑' } as const;
+type Fascia = 'conveniente' | 'media' | 'caro';
+/** Regola proposta: distanza dalla media in centesimi. */
+function fasciaCentesimi(v: number): Fascia {
+  const diff = v - media;
+  return diff <= -0.01 ? 'conveniente' : diff >= 0.01 ? 'caro' : 'media';
+}
 
-function righe(voci: readonly Voce[], conDelta = false, conSimboli = false): string {
+function righe(voci: readonly Voce[], conDelta = false, regola: 'terzi' | 'centesimi' = 'terzi'): string {
   return voci
     .map((v) => {
       const i = lista.indexOf(v);
-      const f = fascia(i, lista.length);
+      const f = regola === 'terzi' ? fascia(i, lista.length) : fasciaCentesimi(v.euro);
       return `<div class="riga fascia-${f}">
-        ${conSimboli ? `<span class="simbolo" aria-label="${f}">${SIMBOLI[f]}</span>` : ''}
         <span class="prezzo">${euro(v.euro)}</span>
         <span class="chi">${esc(v.bandiera)}</span>
         ${conDelta ? `<span class="segno">${differenza(v.euro - media)}</span>` : ''}
@@ -89,8 +93,7 @@ $('[data-layout-b]').innerHTML = `
 
 // ——— Passo 4: fasce di colore ———
 $('[data-fasce]').innerHTML = eroe(primo!) + righe(altri, true);
-// Un distributore ogni tre, così compaiono tutte le fasce
-$('[data-fasce-simboli]').innerHTML = righe(lista.filter((_, i) => i % 3 === 0), true, true);
+$('[data-fasce-centesimi]').innerHTML = eroe(primo!) + righe(altri, true, 'centesimi');
 
 // ——— Passo 5: confronto font ———
 const font = [
@@ -150,7 +153,7 @@ function contrasto(a: string, b: string): number {
 const ruoli = [
   ['--testo', 'Testo'],
   ['--testo-2', 'Testo secondario'],
-  ['--azione', 'Azione'],
+  ['--azione-testo', 'Azione (come testo)'],
   ['--conveniente', 'Conveniente'],
   ['--media', 'Nella media'],
   ['--caro', 'Caro'],
@@ -166,16 +169,23 @@ function aggiornaCampioni(): void {
     `<li><span class="colore" style="background:${superficie}"></span>Superficie</li>` +
     ruoli
       .map(([variabile, nome]) => {
-        const colore = getComputedStyle($('[data-campioni]')).getPropertyValue(variabile).trim();
+        const stileCampioni = getComputedStyle($('[data-campioni]'));
+        const colore =
+          stileCampioni.getPropertyValue(variabile).trim() || stileCampioni.getPropertyValue('--azione').trim();
         const c = contrasto(colore, superficie);
-        return `<li><span class="colore" style="background:var(${variabile})"></span>
+        return `<li><span class="colore" style="background:${colore}"></span>
           <span>${nome}<br><span class="ok">${c.toFixed(1).replace('.', ',')}:1 ${c >= 4.5 ? '✓' : '✗ sotto 4,5'}</span></span></li>`;
       })
-      .join('');
+      .join('') +
+    (() => {
+      const c = contrasto(stile.getPropertyValue('--su-azione').trim(), stile.getPropertyValue('--azione').trim());
+      return `<li><span class="colore" style="background:var(--azione)"></span>
+        <span>Bottone (testo sopra)<br><span class="ok">${c.toFixed(1).replace('.', ',')}:1 ${c >= 4.5 ? '✓' : '✗ sotto 4,5'}</span></span></li>`;
+    })();
 }
 
 // ——— Barra delle opzioni ———
-const nomiPalette = { A: '“Segnaletica”', B: '“Totem”', C: '“Risparmio”', S: '“Totem” semaforo' } as const;
+const nomiPalette = { A: '“Segnaletica”', B: '“Totem”', C: '“Risparmio”' } as const;
 function applica(): void {
   const scelta = (nome: string) => $<HTMLSelectElement>(`[data-scelta="${nome}"]`).value;
   const palette = scelta('palette') as keyof typeof nomiPalette;
@@ -185,7 +195,6 @@ function applica(): void {
   main.dataset['vista'] = scelta('vista');
   $('[data-nome-palette]').textContent = `${palette} ${nomiPalette[palette]}`;
   $('[data-avviso-totem]').hidden = !(palette === 'B' && scelta('tema') === 'chiaro');
-  $('[data-con-simboli]').hidden = palette !== 'S';
   document
     .querySelector('meta[name="theme-color"]')
     ?.setAttribute('content', getComputedStyle(html).getPropertyValue('--sfondo').trim());

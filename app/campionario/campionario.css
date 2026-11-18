@@ -19,20 +19,17 @@
   --sfondo: #121A21; --superficie: #1B252E; --testo: #E8EEF2; --testo-2: #9FB0BD;
   --azione: #6AA8F0; --su-azione: #121A21; --conveniente: #3FC29A; --media: #9FB0BD; --caro: #F08A4B; --cifre: var(--testo);
 }
-/* B "Totem" esiste solo scura: in chiaro si mostra comunque scura, con un avviso */
-[data-palette='B'] {
+/* B "Totem" scuro: valori originali di ux-design.md */
+[data-palette='B'][data-tema='scuro'] {
   --sfondo: #1C2126; --superficie: #262C32; --testo: #EEF1F3; --testo-2: #A3AEB8;
   --azione: #F5A524; --su-azione: #1C2126; --conveniente: #43C59A; --media: #A3AEB8; --caro: #FF8A4C; --cifre: #F5A524;
 }
-/* S = "B semaforo" (richiesta di Giuseppe del 18/11/2026): B con prezzi verde / giallo / rosso,
-   azione neutra per non confondere il giallo dei prezzi con l'ambra dei bottoni. Versione chiara nuova. */
-[data-palette='S'][data-tema='scuro'] {
-  --sfondo: #1C2126; --superficie: #262C32; --testo: #EEF1F3; --testo-2: #A3AEB8;
-  --azione: #EEF1F3; --su-azione: #1C2126; --conveniente: #3DD68C; --media: #F5C542; --caro: #FF6B5B; --cifre: var(--testo);
-}
-[data-palette='S'][data-tema='chiaro'] {
-  --sfondo: #EEF0F2; --superficie: #FFFFFF; --testo: #1C2126; --testo-2: #56616B;
-  --azione: #1C2126; --su-azione: #FFFFFF; --conveniente: #0E7C3A; --media: #8F6500; --caro: #C8261E; --cifre: var(--testo);
+/* B "Totem" chiaro: PROPOSTA nuova (18/11/2026). Cifre scure come un cartellone stampato,
+   bottoni ambra con testo scuro e bordo ambra scuro per staccarli dal bianco. */
+[data-palette='B'][data-tema='chiaro'] {
+  --sfondo: #F2F1EE; --superficie: #FFFFFF; --testo: #1C2126; --testo-2: #5A636B;
+  --azione: #F5A524; --su-azione: #1C2126; --bordo-azione: #B36F00; --azione-testo: #8C5A00;
+  --conveniente: #0B7A55; --media: #5A636B; --caro: #B4501A; --cifre: #1C2126;
 }
 [data-palette='C'][data-tema='chiaro'] {
   --sfondo: #F5F6F4; --superficie: #FFFFFF; --testo: #1A1F1C; --testo-2: #5D665F;
@@ -119,11 +116,7 @@ h3 { font-size: 1rem; margin: 24px 0 8px; font-weight: 600; }
 .fascia-conveniente .prezzo { color: var(--conveniente); }
 .fascia-media .prezzo { color: var(--media); }
 .fascia-caro .prezzo { color: var(--caro); }
-[data-palette='B'] .fascia-media .prezzo { color: var(--cifre); }
-.simbolo { font-family: var(--font-testo); font-weight: 700; width: 1.1em; text-align: center; }
-.fascia-conveniente .simbolo { color: var(--conveniente); }
-.fascia-media .simbolo { color: var(--media); }
-.fascia-caro .simbolo { color: var(--caro); }
+[data-palette='B'][data-tema='scuro'] .fascia-media .prezzo { color: var(--cifre); }
 .segno { font-size: var(--t-dettaglio); color: var(--testo-2); text-align: right; white-space: nowrap; }
 
 .bottone {
@@ -131,11 +124,12 @@ h3 { font-size: 1rem; margin: 24px 0 8px; font-weight: 600; }
   min-height: 48px; padding: 0 20px;
   font: inherit; font-weight: 600;
   background: var(--azione); color: var(--su-azione);
+  box-shadow: inset 0 0 0 1.5px var(--bordo-azione, transparent);
   touch-action: manipulation; user-select: none; -webkit-user-select: none;
   transition: transform 100ms ease-out;
 }
 .bottone:active { transform: scale(0.97); }
-.bottone.secondario { background: transparent; color: var(--azione); box-shadow: inset 0 0 0 1.5px var(--azione); }
+.bottone.secondario { background: transparent; color: var(--azione-testo, var(--azione)); box-shadow: inset 0 0 0 1.5px var(--bordo-azione, var(--azione)); }
 :focus-visible { outline: 3px solid var(--azione); outline-offset: 2px; }
 
 /* ——— Telefoni finti (passo 2) ——— */
