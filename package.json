@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "check": "tsc",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "cucina": "node cucina/src/cucina.ts"
   },
   "devDependencies": {
     "@types/node": "26.6.6",

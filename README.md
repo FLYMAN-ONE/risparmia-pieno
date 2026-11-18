@@ -40,6 +40,7 @@ Da scrivere nel Terminale, dentro la cartella del progetto.
 | `npm run check` | Controlla il codice con TypeScript: se non scrive nulla, è tutto a posto |
 | `npm run dev` | Apre l'app in anteprima su http://localhost:5173 |
 | `npm run build` | Prepara la versione finale dell'app nella cartella `dist/` |
+| `npm run cucina -- <cartella CSV> <file.json>` | Legge i due file MIMIT, li controlla e scrive il file nazionale dei prezzi |
 
 Gli stessi controlli (TypeScript, test e costruzione dell'app) girano da soli su GitHub a ogni modifica. Se qualcosa non va, accanto all'ultima modifica compare una X rossa e GitHub manda un'email.
 
