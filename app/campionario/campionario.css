@@ -1,0 +1,213 @@
+/* Campionario: valori PROVVISORI delle opzioni in ux-design.md (passi 2-6).
+   Non è il file dei token: quello si crea dopo le scelte di Giuseppe. */
+
+@font-face { font-family: 'Barlow'; src: url('./font/Barlow-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Barlow'; src: url('./font/Barlow-Medium.ttf') format('truetype'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Barlow'; src: url('./font/Barlow-SemiBold.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Barlow Semi Condensed'; src: url('./font/BarlowSemiCondensed-SemiBold.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Titillium Web'; src: url('./font/TitilliumWeb-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Titillium Web'; src: url('./font/TitilliumWeb-SemiBold.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Titillium Web'; src: url('./font/TitilliumWeb-Bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Atkinson Hyperlegible Next'; src: url('./font/AtkinsonHyperlegibleNext-wght.ttf') format('truetype'); font-weight: 200 800; font-display: swap; }
+
+/* ——— Palette (ux-design.md, passo 3) ——— */
+[data-palette='A'][data-tema='chiaro'] {
+  --sfondo: #F3F6F8; --superficie: #FFFFFF; --testo: #14232F; --testo-2: #51626F;
+  --azione: #0A5BB5; --su-azione: #FFFFFF; --conveniente: #0B7A5C; --media: #5E6B76; --caro: #B5531A; --cifre: var(--testo);
+}
+[data-palette='A'][data-tema='scuro'] {
+  --sfondo: #121A21; --superficie: #1B252E; --testo: #E8EEF2; --testo-2: #9FB0BD;
+  --azione: #6AA8F0; --su-azione: #121A21; --conveniente: #3FC29A; --media: #9FB0BD; --caro: #F08A4B; --cifre: var(--testo);
+}
+/* B "Totem" esiste solo scura: in chiaro si mostra comunque scura, con un avviso */
+[data-palette='B'] {
+  --sfondo: #1C2126; --superficie: #262C32; --testo: #EEF1F3; --testo-2: #A3AEB8;
+  --azione: #F5A524; --su-azione: #1C2126; --conveniente: #43C59A; --media: #A3AEB8; --caro: #FF8A4C; --cifre: #F5A524;
+}
+[data-palette='C'][data-tema='chiaro'] {
+  --sfondo: #F5F6F4; --superficie: #FFFFFF; --testo: #1A1F1C; --testo-2: #5D665F;
+  --azione: #127A4A; --su-azione: #FFFFFF; --conveniente: #127A4A; --media: var(--testo); --caro: var(--testo); --cifre: var(--testo);
+}
+[data-palette='C'][data-tema='scuro'] {
+  --sfondo: #161A18; --superficie: #202523; --testo: #ECEFEC; --testo-2: #A2ABA4;
+  --azione: #4CC28A; --su-azione: #161A18; --conveniente: #4CC28A; --media: var(--testo); --caro: var(--testo); --cifre: var(--testo);
+}
+
+/* ——— Font (passo 5): testo e prezzi ——— */
+[data-font='barlow'] { --font-testo: 'Barlow', system-ui, sans-serif; --font-prezzo: 'Barlow Semi Condensed', 'Barlow', sans-serif; --peso-prezzo: 600; }
+[data-font='titillium'] { --font-testo: 'Titillium Web', system-ui, sans-serif; --font-prezzo: 'Titillium Web', sans-serif; --peso-prezzo: 700; }
+[data-font='atkinson'] { --font-testo: 'Atkinson Hyperlegible Next', system-ui, sans-serif; --font-prezzo: 'Atkinson Hyperlegible Next', sans-serif; --peso-prezzo: 650; }
+
+/* ——— Scala tipografica (passo 6): base 17 px, rapporto 1,25, in rem così cresce con le impostazioni ——— */
+:root {
+  --t-eroe: 3.059rem;    /* 52 px */
+  --t-lista: 1.588rem;   /* 27 px */
+  --t-normale: 1rem;     /* 17 px */
+  --t-dettaglio: 0.824rem; /* 14 px */
+  --t-minimo: 0.765rem;  /* 13 px */
+  --raggio-pannello: 20px;
+  --raggio-bottone: 12px;
+}
+
+/* Base: 17 px, e su iPhone segue la dimensione del testo scelta nelle impostazioni */
+html { font-size: 106.25%; -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+@supports (font: -apple-system-body) { html { font: -apple-system-body; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--sfondo);
+  color: var(--testo);
+  font-family: var(--font-testo);
+  font-weight: 400;
+  line-height: 1.45;
+}
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(140px + env(safe-area-inset-bottom, 0px));
+}
+main[data-vista='protanopia'] { filter: url('#protanopia'); }
+main[data-vista='deuteranopia'] { filter: url('#deuteranopia'); }
+main[data-vista='tritanopia'] { filter: url('#tritanopia'); }
+
+h1 { font-size: 1.6rem; line-height: 1.15; letter-spacing: -0.01em; margin: 8px 0; font-weight: 600; }
+h2 { font-size: 1.25rem; line-height: 1.2; margin: 40px 0 12px; font-weight: 600; }
+h3 { font-size: 1rem; margin: 24px 0 8px; font-weight: 600; }
+.passo { display: block; font-size: var(--t-dettaglio); color: var(--testo-2); font-weight: 500; }
+.nota { color: var(--testo-2); font-size: var(--t-dettaglio); }
+.avviso { background: var(--superficie); border-left: 4px solid var(--azione); padding: 12px 16px; font-size: var(--t-dettaglio); }
+.piede { margin-top: 48px; }
+
+.prezzo {
+  font-family: var(--font-prezzo);
+  font-weight: var(--peso-prezzo);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--cifre);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.prezzo .unita { font-family: var(--font-testo); font-weight: 400; font-size: 0.5em; color: var(--testo-2); letter-spacing: 0; }
+
+.scheda { background: var(--superficie); padding: 16px; }
+
+/* ——— Lista (righe senza bordi arrotondati, solo una linea sottile) ——— */
+.eroe { padding: 16px 0 20px; }
+.eroe .etichetta { font-size: var(--t-dettaglio); color: var(--conveniente); font-weight: 600; }
+.eroe .prezzo { font-size: var(--t-eroe); line-height: 1; display: block; margin: 4px 0; }
+.eroe .chi { font-size: var(--t-normale); font-weight: 500; }
+.eroe .dove, .eroe .delta { font-size: var(--t-dettaglio); color: var(--testo-2); }
+.eroe .delta b { color: var(--conveniente); font-weight: 600; }
+.riga {
+  display: flex; align-items: baseline; gap: 12px;
+  padding: 10px 0; border-top: 1px solid color-mix(in srgb, var(--testo) 12%, transparent);
+  min-height: 48px;
+}
+.riga .prezzo { font-size: var(--t-lista); min-width: 4.2ch; }
+.riga .chi { font-size: var(--t-normale); font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.riga .km { font-size: var(--t-dettaglio); color: var(--testo-2); }
+.fascia-conveniente .prezzo { color: var(--conveniente); }
+.fascia-media .prezzo { color: var(--media); }
+.fascia-caro .prezzo { color: var(--caro); }
+[data-palette='B'] .fascia-media .prezzo { color: var(--cifre); }
+.segno { font-size: var(--t-dettaglio); color: var(--testo-2); width: 5.5ch; text-align: right; }
+
+.bottone {
+  appearance: none; border: 0; border-radius: var(--raggio-bottone);
+  min-height: 48px; padding: 0 20px;
+  font: inherit; font-weight: 600;
+  background: var(--azione); color: var(--su-azione);
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  transition: transform 100ms ease-out;
+}
+.bottone:active { transform: scale(0.97); }
+.bottone.secondario { background: transparent; color: var(--azione); box-shadow: inset 0 0 0 1.5px var(--azione); }
+:focus-visible { outline: 3px solid var(--azione); outline-offset: 2px; }
+
+/* ——— Telefoni finti (passo 2) ——— */
+.telefoni { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+figure { margin: 0; }
+figcaption { font-size: var(--t-dettaglio); margin-bottom: 8px; }
+.telefono {
+  position: relative; height: 560px; overflow: hidden;
+  border-radius: 32px; border: 8px solid color-mix(in srgb, var(--testo) 85%, transparent);
+  background: var(--sfondo); display: flex; flex-direction: column;
+}
+.telefono .alto {
+  display: flex; gap: 8px; align-items: center; padding: 12px; font-size: var(--t-dettaglio);
+  background: var(--superficie); border-bottom: 1px solid color-mix(in srgb, var(--testo) 10%, transparent);
+}
+.telefono .alto .data { margin-left: auto; color: var(--testo-2); }
+.filtro { font-weight: 600; }
+.telefono .corpo { flex: 1; overflow: hidden; padding: 0 12px; background: var(--superficie); }
+.telefono .basso {
+  display: flex; gap: 8px; padding: 12px; background: var(--superficie);
+  border-top: 1px solid color-mix(in srgb, var(--testo) 10%, transparent);
+}
+.telefono .basso .bottone { flex: 1; }
+
+.mappa {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, transparent 47%, color-mix(in srgb, var(--testo-2) 22%, transparent) 47% 53%, transparent 53%) 0 0 / 140px 100%,
+    linear-gradient(0deg, transparent 47%, color-mix(in srgb, var(--testo-2) 22%, transparent) 47% 53%, transparent 53%) 0 0 / 100% 120px,
+    linear-gradient(35deg, transparent 49%, color-mix(in srgb, var(--testo-2) 30%, transparent) 49% 51%, transparent 51%),
+    color-mix(in srgb, var(--sfondo) 85%, var(--testo-2));
+}
+.segnaposto {
+  position: absolute; transform: translate(-50%, -100%);
+  background: var(--superficie); border-radius: 8px; padding: 2px 6px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25); font-size: 0.95rem;
+}
+.tu { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: #2F7BEF; border: 3px solid #fff; box-shadow: 0 0 0 6px rgb(47 123 239 / 0.2); transform: translate(-50%, -50%); }
+.pannello {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 52%;
+  background: var(--superficie); border-radius: var(--raggio-pannello) var(--raggio-pannello) 0 0;
+  box-shadow: 0 -4px 24px rgb(0 0 0 / 0.18); padding: 8px 12px 0; display: flex; flex-direction: column;
+}
+.maniglia { width: 36px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--testo) 25%, transparent); margin: 0 auto 4px; }
+.pannello .righe { flex: 1; overflow: hidden; }
+.pannello .basso { margin: 0 -12px; }
+.telefono .alto.galleggiante { position: absolute; top: 12px; left: 12px; right: 12px; border-radius: var(--raggio-bottone); border: 0; box-shadow: 0 1px 4px rgb(0 0 0 / 0.15); }
+
+/* ——— Campioni di colore ——— */
+.campioni { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.campioni li { background: var(--superficie); padding: 10px; font-size: var(--t-dettaglio); display: flex; gap: 10px; align-items: center; }
+.campioni .colore { width: 32px; height: 32px; border-radius: 8px; flex: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--testo) 20%, transparent); }
+.campioni .ok { color: var(--testo-2); }
+
+/* ——— Confronto font ——— */
+.confronto-font { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.confronto-font > div { background: var(--superficie); padding: 16px; }
+.confronto-font h3 { margin: 0 0 4px; font-size: var(--t-dettaglio); color: var(--testo-2); font-weight: 500; }
+.confronto-font .eroe .prezzo { font-size: 2.6rem; }
+.confronto-font .colonna { font-size: var(--t-lista); display: flex; flex-direction: column; align-items: flex-end; width: max-content; }
+
+/* ——— Scala ——— */
+.scala-riga { display: grid; grid-template-columns: 7.5rem 1fr; gap: 12px; align-items: baseline; padding: 10px 0; border-top: 1px solid color-mix(in srgb, var(--testo) 10%, transparent); }
+.scala-riga:first-child { border-top: 0; }
+.scala-riga .cosa { font-size: var(--t-minimo); color: var(--testo-2); }
+.terza-cifra { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.terza-cifra > div { background: var(--superficie); padding: 16px; }
+.terza-cifra .prezzo { font-size: var(--t-eroe); line-height: 1; }
+.terza-cifra .piccola { font-size: 0.68em; vertical-align: 0.38em; }
+
+/* ——— Barra delle opzioni, in basso nella zona del pollice ——— */
+.barra {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: var(--superficie); border-top: 1px solid color-mix(in srgb, var(--testo) 15%, transparent);
+  font-size: 0.75rem; color: var(--testo-2);
+}
+.barra label { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.barra select {
+  font: inherit; font-size: 16px; /* sotto i 16 px l'iPhone ingrandisce la pagina */
+  min-height: 44px; width: 100%; padding: 0 4px;
+  color: var(--testo); background: var(--sfondo);
+  border: 1px solid color-mix(in srgb, var(--testo) 25%, transparent); border-radius: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottone { transition: none; }
+}

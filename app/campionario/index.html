@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="it" data-palette="A" data-tema="chiaro" data-font="barlow">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#F3F6F8" />
+    <title>Campionario — Risparmia Pieno</title>
+    <link rel="stylesheet" href="./campionario.css" />
+  </head>
+  <body>
+    <!-- Filtri per simulare il daltonismo (matrici di Machado, Oliveira e Fernandes, 2009) -->
+    <svg width="0" height="0" aria-hidden="true" style="position: absolute">
+      <filter id="protanopia">
+        <feColorMatrix type="matrix" values="0.152286 1.052583 -0.204868 0 0  0.114503 0.786281 0.099216 0 0  -0.003882 -0.048116 1.051998 0 0  0 0 0 1 0" />
+      </filter>
+      <filter id="deuteranopia">
+        <feColorMatrix type="matrix" values="0.367322 0.860646 -0.227968 0 0  0.280085 0.672501 0.047413 0 0  -0.011820 0.042940 0.968881 0 0  0 0 0 1 0" />
+      </filter>
+      <filter id="tritanopia">
+        <feColorMatrix type="matrix" values="1.255528 -0.076749 -0.178779 0 0  -0.078411 0.930809 0.147602 0 0  0.004733 0.691367 0.303900 0 0  0 0 0 1 0" />
+      </filter>
+    </svg>
+
+    <main id="contenuto">
+      <header class="intestazione">
+        <h1>Campionario</h1>
+        <p class="nota">
+          Prova questa pagina sul telefono: al sole, di notte in auto e con una mano sola.
+          Cambia le opzioni dalla barra in basso. Prezzi reali MIMIT del <span data-data></span>,
+          distributori entro 5 km da Gallarate.
+        </p>
+        <p class="avviso" data-avviso-totem hidden>
+          La palette B "Totem" esiste solo in versione scura: la versione chiara andrebbe inventata a parte.
+        </p>
+      </header>
+
+      <section aria-labelledby="t-layout">
+        <h2 id="t-layout"><span class="passo">Passo 2</span> Layout della schermata principale</h2>
+        <div class="telefoni">
+          <figure>
+            <figcaption><b>A</b> · Lista prima, mappa su richiesta</figcaption>
+            <div class="telefono" data-layout-a></div>
+          </figure>
+          <figure>
+            <figcaption><b>B</b> · Mappa a tutto schermo e pannello dal basso</figcaption>
+            <div class="telefono" data-layout-b></div>
+          </figure>
+        </div>
+        <p class="nota">
+          <b>C</b> (raccomandata) · Si apre come A. Se passi alla mappa, la volta dopo riparte dalla mappa, come B.
+          La mappa qui è finta: nell'app vera arriva da OpenFreeMap.
+        </p>
+      </section>
+
+      <section aria-labelledby="t-palette">
+        <h2 id="t-palette"><span class="passo">Passo 3</span> Palette <span data-nome-palette></span></h2>
+        <ul class="campioni" data-campioni></ul>
+        <p class="nota">Il numero è il contrasto sullo sfondo. Il minimo per la leggibilità (WCAG AA) è 4,5.</p>
+      </section>
+
+      <section aria-labelledby="t-colori">
+        <h2 id="t-colori"><span class="passo">Passo 4</span> Come si colorano i prezzi</h2>
+        <p class="nota">
+          Colore per fascia (il terzo più economico, quello medio e quello più caro della zona) e, nella prima riga,
+          la differenza dalla media. Usa "Vista" nella barra in basso per simulare il daltonismo.
+        </p>
+        <div class="scheda" data-fasce></div>
+      </section>
+
+      <section aria-labelledby="t-font">
+        <h2 id="t-font"><span class="passo">Passo 5</span> Font</h2>
+        <p class="nota">Gli stessi prezzi nei tre font. Le cifre devono restare in colonna, una sotto l'altra.</p>
+        <div class="confronto-font" data-font-confronto></div>
+      </section>
+
+      <section aria-labelledby="t-scala">
+        <h2 id="t-scala"><span class="passo">Passo 6</span> Scala tipografica</h2>
+        <div class="scheda" data-scala></div>
+        <h3>La terza cifra più piccola, come sui cartelloni</h3>
+        <div class="terza-cifra" data-terza-cifra></div>
+      </section>
+
+      <footer class="nota piede">
+        Fonte dei prezzi: Ministero delle Imprese e del Made in Italy, Osservaprezzi Carburanti, licenza IODL 2.0.
+        Font con licenza SIL Open Font License.
+      </footer>
+    </main>
+
+    <nav class="barra" aria-label="Opzioni del campionario">
+      <label>Palette
+        <select data-scelta="palette">
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+        </select>
+      </label>
+      <label>Tema
+        <select data-scelta="tema">
+          <option value="chiaro">Chiaro</option>
+          <option value="scuro">Scuro</option>
+        </select>
+      </label>
+      <label>Font
+        <select data-scelta="font">
+          <option value="barlow">Barlow</option>
+          <option value="titillium">Titillium</option>
+          <option value="atkinson">Atkinson</option>
+        </select>
+      </label>
+      <label>Vista
+        <select data-scelta="vista">
+          <option value="normale">Normale</option>
+          <option value="protanopia">Protanopia</option>
+          <option value="deuteranopia">Deuteranopia</option>
+          <option value="tritanopia">Tritanopia</option>
+        </select>
+      </label>
+    </nav>
+
+    <script type="module" src="./campionario.ts"></script>
+  </body>
+</html>
