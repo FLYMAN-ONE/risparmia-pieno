@@ -10,7 +10,7 @@ Una web app da installare sul telefono che mostra, su mappa e in lista, i distri
 
 L'app ha due parti separate, che non si parlano mai in tempo reale:
 
-1. **La cucina dei dati** (`cucina/`). Ogni mattina, sui server di GitHub, uno script scarica i prezzi ufficiali del Ministero, li controlla e li compatta in un unico file nazionale, uguale per tutti.
+1. **La cucina dei dati** (`cucina/`). Ogni giorno l'iPhone scarica i prezzi ufficiali del Ministero e li consegna a GitHub, perché il sito del Ministero non risponde ai server di GitHub (vedi [`cucina/COMANDO-RAPIDO.md`](cucina/COMANDO-RAPIDO.md)). Su GitHub uno script li controlla e li compatta in un unico file nazionale, uguale per tutti, pubblicato su https://flyman-one.github.io/risparmia-pieno/dati/prezzi.json
 2. **L'app** (`app/`). Gira sul telefono: scarica quel file e calcola i distributori vicini **solo sul telefono**.
 
 ## Privacy
@@ -52,6 +52,8 @@ Prezzi e anagrafica dei distributori: Ministero delle Imprese e del Made in Ital
 
 Questa sezione si completa durante lo sviluppo.
 
-- **…i prezzi non si aggiornano:** _da scrivere nella fase 2._
-- **…il Ministero cambia il formato dei file:** _da scrivere nella fase 1._
+- **…ricevo un'email "Controllo serale" fallito:** oggi i prezzi non sono arrivati. Avvia a mano sull'iPhone il Comando Rapido *Consegna dati MIMIT*. Se dà errore, vedi la sezione "Cosa fare se…" di [`cucina/COMANDO-RAPIDO.md`](cucina/COMANDO-RAPIDO.md).
+- **…ricevo un'email "Ricevi dati MIMIT" fallito:** i dati del giorno non hanno superato i controlli di qualità e **non sono stati pubblicati**: l'app continua con quelli del giorno prima. Apri l'azione su GitHub (scheda Actions) e leggi le righe dopo "NON PUBBLICO". Se è un problema del Ministero di un giorno, si risolve da solo con la consegna successiva. Se si ripete, probabilmente è cambiato il formato: vedi sotto.
+- **…il Ministero cambia il formato dei file:** l'azione si ferma con "Prima riga inattesa" o "Intestazione cambiata". Nulla di sbagliato viene pubblicato. Va aggiornata la lettura in `cucina/src/leggi.ts` e le note in [`cucina/FORMATO-MIMIT.md`](cucina/FORMATO-MIMIT.md), aggiungendo un nuovo campione in `cucina/test/campioni/`.
+- **…compare un carburante nuovo:** nel resoconto dell'azione c'è "ATTENZIONE: carburanti sconosciuti". Finisce in "Altro" finché non lo si aggiunge alla tabella in `cucina/src/carburanti.ts`.
 - **…il sito non si apre:** _da scrivere nella fase 9._
