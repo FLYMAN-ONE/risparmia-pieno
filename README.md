@@ -1,5 +1,7 @@
 # Risparmia Pieno
 
+[![Test](https://github.com/FLYMAN-ONE/risparmia-pieno/actions/workflows/test.yml/badge.svg)](https://github.com/FLYMAN-ONE/risparmia-pieno/actions/workflows/test.yml)
+
 Una web app da installare sul telefono che mostra, su mappa e in lista, i distributori di carburante più economici intorno a te o in un comune che scegli.
 
 > Progetto in sviluppo. Questa pagina si completa man mano.
@@ -38,6 +40,8 @@ Da scrivere nel Terminale, dentro la cartella del progetto.
 | `npm run check` | Controlla il codice con TypeScript: se non scrive nulla, è tutto a posto |
 | `npm run dev` | Apre l'app in anteprima su http://localhost:5173 |
 | `npm run build` | Prepara la versione finale dell'app nella cartella `dist/` |
+
+Gli stessi controlli (TypeScript, test e costruzione dell'app) girano da soli su GitHub a ogni modifica. Se qualcosa non va, accanto all'ultima modifica compare una X rossa e GitHub manda un'email.
 
 ## Fonte dei dati
 
