@@ -252,7 +252,7 @@ $('[data-carica-mappa]').addEventListener('click', async () => {
   contenitore.innerHTML = '<p class="nota">Carico la mappa…</p>';
   const { creaMappa } = await import('./mappa.ts');
   contenitore.innerHTML = '';
-  creaMappa(contenitore, () => html.dataset['tema'] === 'scuro');
+  creaMappa(contenitore, () => html.dataset['tema'] === 'scuro', () => (html.dataset['etichette'] === 'gruppi' ? 'gruppi' : 'priorita'));
 });
 
 // ——— Passo 11: testi ———
@@ -281,7 +281,9 @@ function applica(): void {
   html.dataset['tema'] = scelta('tema');
   html.dataset['icone'] = scelta('icone');
   html.dataset['movimento'] = scelta('movimento');
-  $('[data-contenitore-mappa]').classList.toggle('desaturata', scelta('mappa') === 'desaturata');
+  const etichettePrima = html.dataset['etichette'];
+  html.dataset['etichette'] = scelta('etichette');
+  if (etichettePrima && etichettePrima !== html.dataset['etichette']) window.dispatchEvent(new CustomEvent('etichette-cambiate'));
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', getComputedStyle(html).getPropertyValue('--sfondo').trim());
   disegnaIcone();
   disegnaSpazi();

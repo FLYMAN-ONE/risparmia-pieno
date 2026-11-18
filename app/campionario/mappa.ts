@@ -24,7 +24,9 @@ function fascia(v: number): string {
   return d <= -0.01 ? 'conveniente' : d >= 0.01 ? 'caro' : 'media';
 }
 
-export function creaMappa(contenitore: HTMLElement, scuro: () => boolean): void {
+export type Modalita = 'gruppi' | 'priorita';
+
+export function creaMappa(contenitore: HTMLElement, scuro: () => boolean, modalita: () => Modalita): void {
   const div = document.createElement('div');
   div.className = 'mappa-vera';
   contenitore.append(div);
@@ -70,6 +72,10 @@ export function creaMappa(contenitore: HTMLElement, scuro: () => boolean): void 
   // Etichette HTML (prezzo o "12 · da 2,180"), ricalcolate quando la mappa si ferma
   const etichette = new Map<string, Marker>();
   const aggiornaEtichette = () => {
+    if (modalita() === 'priorita') {
+      aggiornaPriorita();
+      return;
+    }
     if (!mappa.getSource('prezzi')) return;
     const visti = new Set<string>();
     for (const f of mappa.querySourceFeatures('prezzi') as MapGeoJSONFeature[]) {
@@ -104,6 +110,46 @@ export function creaMappa(contenitore: HTMLElement, scuro: () => boolean): void 
       }
     }
   };
+
+  // Modalità "più economici in primo piano": niente gruppi. Si parte dal prezzo più basso e si mette
+  // l'etichetta solo dove c'è spazio; gli altri distributori diventano un pallino colorato.
+  const priorita: Marker[] = [];
+  const LARGHEZZA = 72;
+  const ALTEZZA = 30;
+  function svuotaPriorita(): void {
+    for (const m of priorita) m.remove();
+    priorita.length = 0;
+  }
+  function aggiornaPriorita(): void {
+    svuotaPriorita();
+    const limiti = mappa.getBounds();
+    const visibili = PUNTI.filter((p) => limiti.contains([p[0], p[1]])).sort((a, b) => a[2] - b[2]);
+    const occupati: { x: number; y: number; w: number; h: number }[] = [];
+    for (const [lon, lat, prezzo, marchio] of visibili) {
+      const punto = mappa.project([lon, lat]);
+      const area = { x: punto.x - LARGHEZZA / 2 - 3, y: punto.y - ALTEZZA - 3, w: LARGHEZZA + 6, h: ALTEZZA + 6 };
+      const libero = !occupati.some((o) => area.x < o.x + o.w && area.x + area.w > o.x && area.y < o.y + o.h && area.y + area.h > o.y);
+      const el = document.createElement('button');
+      el.setAttribute('aria-label', `${marchio}, ${euro(prezzo)} euro al litro`);
+      if (libero) {
+        occupati.push(area);
+        el.className = `etichetta-prezzo ${fascia(prezzo)}`;
+        el.textContent = euro(prezzo);
+        el.style.zIndex = '2';
+      } else {
+        el.className = `punto-prezzo ${fascia(prezzo)}`;
+        el.style.zIndex = '1';
+        el.addEventListener('click', () => mappa.easeTo({ center: [lon, lat], zoom: mappa.getZoom() + 1.5 }));
+      }
+      priorita.push(new Marker({ element: el, anchor: libero ? 'bottom' : 'center' }).setLngLat([lon, lat]).addTo(mappa));
+    }
+  }
+  window.addEventListener('etichette-cambiate', () => {
+    svuotaPriorita();
+    for (const [, m] of etichette) m.remove();
+    etichette.clear();
+    aggiornaEtichette();
+  });
 
   mappa.on('load', () => {
     aggiungiDati();

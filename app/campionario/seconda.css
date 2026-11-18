@@ -112,7 +112,8 @@ a { color: var(--azione-testo, var(--azione)); }
   background: color-mix(in srgb, var(--sfondo) 80%, var(--testo-2)); display: grid; place-items: center;
 }
 .contenitore-mappa .mappa-vera { position: absolute; inset: 0; }
-.contenitore-mappa.desaturata .maplibregl-canvas { filter: saturate(0.15) contrast(0.95); }
+/* Decisione del passo 10: mappa desaturata, i prezzi sono l'unica cosa colorata */
+.contenitore-mappa .maplibregl-canvas { filter: saturate(0.15) contrast(0.95); }
 .etichetta-prezzo {
   font-family: var(--font-prezzo); font-weight: var(--peso-prezzo); font-variant-numeric: tabular-nums;
   font-size: 0.95rem; line-height: 1; padding: 6px 8px; border-radius: 8px; border: 0; cursor: pointer;
@@ -124,6 +125,12 @@ a { color: var(--azione-testo, var(--azione)); }
 .etichetta-prezzo.gruppo b { font-family: var(--font-prezzo); font-weight: var(--peso-prezzo); color: var(--media); }
 .etichetta-prezzo.gruppo b.conveniente { color: var(--conveniente); }
 .etichetta-prezzo.gruppo b.caro { color: var(--caro); }
+.punto-prezzo {
+  width: 14px; height: 14px; padding: 0; border-radius: 50%; border: 2px solid var(--superficie); cursor: pointer;
+  background: var(--media); box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+}
+.punto-prezzo.conveniente { background: var(--conveniente); }
+.punto-prezzo.caro { background: var(--caro); }
 .tu-mappa { width: 18px; height: 18px; border-radius: 50%; background: #2F7BEF; border: 3px solid #fff; box-shadow: 0 0 0 8px rgb(47 123 239 / 0.2); }
 
 /* ——— Passo 11 ——— */
