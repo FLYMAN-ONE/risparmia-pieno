@@ -8,7 +8,7 @@ Fonte: Ministero delle Imprese e del Made in Italy, Osservaprezzi Carburanti, li
 
 | idImpianto | Caso |
 |---|---|
-| 41799, 41800, 28790, 10555, 10817, 17205, 40509, 48492 | normali, tutti a Gallarate (utili anche per la ricerca per comune) |
+| 41799, 41800, 28790, 10555, 10817, 17205, 40509, 48492 | normali, tutti a Gallarate (utili anche per la ricerca per comune); 10555 e 48492 non hanno prezzi |
 | 23316, 56803 | il separatore `\|` compare nel nome: 11 campi invece di 10 |
 | 40820 | il separatore `\|` compare due volte: 12 campi |
 | 46593 | virgoletta di apertura senza chiusura |
