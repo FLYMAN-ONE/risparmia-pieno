@@ -43,3 +43,4 @@ p { margin: 0; }
 .messaggio { display: flex; gap: var(--s-3); align-items: flex-start; background: var(--superficie); padding: var(--s-4); }
 .messaggio > svg { width: 24px; height: 24px; flex: none; color: var(--testo-2); }
 .messaggio .bottone { margin-top: var(--s-3); }
+.messaggio .codice { font-size: var(--t-minimo); color: var(--testo-2); margin-top: var(--s-1); }

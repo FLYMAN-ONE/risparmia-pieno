@@ -57,10 +57,12 @@ const bottoneIntorno = document.querySelector<HTMLButtonElement>('[data-intorno]
 /** La posizione: solo in questa variabile, finché l'app è aperta. Mai salvata. */
 let posizione: Posizione | undefined;
 
-function mostraPosizioneNonDisponibile(): void {
+function mostraPosizioneNonDisponibile(codice: number): void {
   // Testo deciso al passo 11. Il bottone "Cerca un comune" arriva con la ricerca (fase 6).
+  // Il codice tecnico serve a capire i problemi sul telefono: dice solo il tipo di errore.
   contenuto.innerHTML = `<div class="messaggio" role="alert">${icona('intornoAMe')}<div>
-    <p>Posizione non disponibile. Cerca un comune oppure attiva la posizione nelle impostazioni.</p></div></div>`;
+    <p>Posizione non disponibile. Cerca un comune oppure attiva la posizione nelle impostazioni.</p>
+    <p class="codice">Codice ${String(codice)}</p></div></div>`;
 }
 
 async function intornoAMe(): Promise<void> {
@@ -72,7 +74,7 @@ async function intornoAMe(): Promise<void> {
   bottoneIntorno.removeAttribute('aria-busy');
   if (esito.tipo !== 'ok') {
     posizione = undefined;
-    mostraPosizioneNonDisponibile();
+    mostraPosizioneNonDisponibile(esito.codice);
     return;
   }
   posizione = esito.posizione;

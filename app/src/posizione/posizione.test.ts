@@ -24,16 +24,16 @@ describe('chiediPosizione', () => {
   });
 
   it('permesso negato → "negata"', async () => {
-    expect(await chiediPosizione(gpsFinto({ codice: 1 }))).toEqual({ tipo: 'negata' });
+    expect(await chiediPosizione(gpsFinto({ codice: 1 }))).toEqual({ tipo: 'negata', codice: 1 });
   });
 
   it('GPS che non risponde o tempo scaduto → "non-disponibile"', async () => {
-    expect(await chiediPosizione(gpsFinto({ codice: 2 }))).toEqual({ tipo: 'non-disponibile' });
-    expect(await chiediPosizione(gpsFinto({ codice: 3 }))).toEqual({ tipo: 'non-disponibile' });
+    expect(await chiediPosizione(gpsFinto({ codice: 2 }))).toEqual({ tipo: 'non-disponibile', codice: 2 });
+    expect(await chiediPosizione(gpsFinto({ codice: 3 }))).toEqual({ tipo: 'non-disponibile', codice: 3 });
   });
 
   it('telefono o browser senza GPS → "non-disponibile"', async () => {
-    expect(await chiediPosizione(undefined)).toEqual({ tipo: 'non-disponibile' });
+    expect(await chiediPosizione(undefined)).toEqual({ tipo: 'non-disponibile', codice: 0 });
   });
 });
 
