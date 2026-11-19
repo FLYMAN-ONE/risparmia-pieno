@@ -26,7 +26,7 @@ function voce(id: number, euro: number, altro: Partial<DistributoreApp> = {}, ve
   };
 }
 
-const opzioni = { carburante: 'gasolio', raggioKm: 5, ordine: 'prezzo' } as const;
+const opzioni = { carburante: 'gasolio', raggioKm: 5, ordine: 'prezzo', navigazione: { app: 'apple', conNota: true } } as const;
 
 describe('nomeDi', () => {
   it('mostra il marchio scritto', () => {
@@ -50,6 +50,20 @@ describe('disegnaLista', () => {
     expect(html).toContain('1,689<span class="unita"> €/l</span>');
     expect(html).toContain('−0,04 €');
     expect(html).toContain('Via Roma 1, Gallarate');
+  });
+
+  it('il più conveniente ha il tasto Naviga, che si apre a parte e senza referrer', () => {
+    const html = disegnaLista(lista, { ...opzioni, voci: lista.voci });
+    expect(html.match(/data-naviga/g)).toHaveLength(1);
+    expect(html).toContain('href="https://maps.apple.com/?daddr=');
+    expect(html).toContain('rel="noopener noreferrer"');
+  });
+
+  it('la nota su Naviga compare solo finché non è stato usato', () => {
+    expect(disegnaLista(lista, { ...opzioni, voci: lista.voci })).toContain('Naviga apre Mappe o Google Maps con la destinazione.');
+    const dopo = disegnaLista(lista, { ...opzioni, navigazione: { app: 'google', conNota: false }, voci: lista.voci });
+    expect(dopo).not.toContain('nota-naviga');
+    expect(dopo).toContain('href="https://www.google.com/maps/dir/');
   });
 
   it('il più conveniente non si ripete nelle righe', () => {

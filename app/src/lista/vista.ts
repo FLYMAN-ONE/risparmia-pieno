@@ -3,6 +3,7 @@ import { unitaDi, type Categoria } from '../../../condiviso/carburanti.ts';
 import { giornoBreve } from '../dati/data.ts';
 import { icona } from '../icone/icone.ts';
 import type { Lista, Ordine, Voce } from './lista.ts';
+import { linkNavigazione, type AppMappe } from '../navigazione/naviga.ts';
 import { formattaCifre, formattaDifferenza, formattaKm } from './prezzo.ts';
 import { esc, indirizzoBreve } from './testo.ts';
 
@@ -17,14 +18,28 @@ function quandoOVecchio(voce: Voce): string {
   return `<span class="vecchio">${icona('prezzoVecchio')}<span class="solo-lettori">Prezzo vecchio, comunicato il </span>${giornoBreve(voce.comunicato)}</span>`;
 }
 
-function eroe(voce: Voce, media: number, unita: string): string {
+/** Il tasto Naviga: un link che apre l'app di navigazione solo quando lo si tocca (regola privacy 9).
+    noreferrer: l'app di mappe non sa da quale pagina si arriva. */
+function naviga(voce: Voce, app: AppMappe, conNota: boolean): string {
+  const { lat, lon } = voce.distributore;
+  return `<a class="bottone secondario naviga" data-naviga href="${linkNavigazione(lat, lon, app)}" target="_blank" rel="noopener noreferrer"
+      aria-label="Naviga verso ${esc(nomeDi(voce))}">${icona('naviga')}Naviga</a>
+    ${conNota ? '<p class="nota-naviga">Naviga apre Mappe o Google Maps con la destinazione.</p>' : ''}`;
+}
+
+function eroe(voce: Voce, media: number, unita: string, navigazione: OpzioniVista['navigazione']): string {
   const differenza = voce.euro - media;
   const comune = voce.distributore.comune.nome;
   return `<article class="eroe fascia-${voce.fascia}${voce.vecchio ? ' e-vecchio' : ''}">
     <p class="etichetta">Il più conveniente</p>
     <p class="prezzo">${formattaCifre(voce.euro)}<span class="unita"> €/${unita}</span></p>
-    <p class="chi">${esc(nomeDi(voce))} · ${formattaKm(voce.km)}</p>
-    <p class="dove">${esc(indirizzoBreve(voce.distributore.indirizzo, comune))}</p>
+    <div class="eroe-sotto">
+      <div class="eroe-dove">
+        <p class="chi">${esc(nomeDi(voce))} · ${formattaKm(voce.km)}</p>
+        <p class="dove">${esc(indirizzoBreve(voce.distributore.indirizzo, comune))}</p>
+      </div>
+      ${naviga(voce, navigazione.app, navigazione.conNota)}
+    </div>
     ${voce.vecchio ? `<p class="dove vecchio">${icona('prezzoVecchio')}Prezzo comunicato il ${giornoBreve(voce.comunicato)}</p>` : ''}
     <p class="delta"><b>${formattaDifferenza(differenza)}</b> rispetto alla media</p>
   </article>`;
@@ -45,6 +60,8 @@ export interface OpzioniVista {
   ordine: Ordine;
   /** le voci già nell'ordine scelto */
   voci: readonly Voce[];
+  /** quale app apre Naviga e se spiegarlo (solo finché non è mai stato usato) */
+  navigazione: { app: AppMappe; conNota: boolean };
 }
 
 export function disegnaLista(lista: Lista, opzioni: OpzioniVista): string {
@@ -57,7 +74,7 @@ export function disegnaLista(lista: Lista, opzioni: OpzioniVista): string {
   const altri = opzioni.voci.filter((v) => v !== migliore);
   const quanti = lista.voci.length;
   return `<section class="lista" aria-label="Distributori">
-    ${eroe(migliore, media, unitaDi(opzioni.carburante))}
+    ${eroe(migliore, media, unitaDi(opzioni.carburante), opzioni.navigazione)}
     <div class="lista-testa">
       <p>${String(quanti)} ${quanti === 1 ? 'distributore' : 'distributori'} entro ${String(opzioni.raggioKm)} km</p>
       <button type="button" class="ordina" data-ordina aria-label="Ordina per ${opzioni.ordine === 'prezzo' ? 'distanza' : 'prezzo'}">

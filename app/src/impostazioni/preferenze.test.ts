@@ -57,6 +57,13 @@ describe('preferenze', () => {
     expect(leggiPreferenze(memoria)).toEqual({ carburante: 'benzina', modalita: 'servito', raggioKm: 15 });
   });
 
+  it('ricorda che Naviga è già stato usato, e accetta solo "sì"', () => {
+    const memoria = memoriaFinta();
+    salvaPreferenze({ carburante: 'gpl', navigaUsato: true }, memoria);
+    expect(leggiPreferenze(memoria)).toEqual({ carburante: 'gpl', navigaUsato: true });
+    expect(leggiPreferenze(memoriaFinta({ 'risparmia-pieno.preferenze': '{"navigaUsato":"verso Roma"}' }))).toEqual({});
+  });
+
   it('ignora un raggio non previsto', () => {
     const memoria = memoriaFinta({ 'risparmia-pieno.preferenze': '{"carburante":"gpl","raggioKm":50}' });
     expect(leggiPreferenze(memoria)).toEqual({ carburante: 'gpl' });

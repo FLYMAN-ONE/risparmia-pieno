@@ -6,7 +6,7 @@ import './stile/struttura.css';
 import './stile/lista.css';
 import './stile/filtri.css';
 import { caricaPrezzi } from './dati/carica.ts';
-import { testoDataPrezzi } from './dati/data.ts';
+import { avvisoRitardo } from './dati/data.ts';
 import { icona, type NomeIcona } from './icone/icone.ts';
 import { cambioDa, disegnaFiltri, disegnaRaggio, disegnaScelte, eUnFiltro, raggioDaPosizione, raggioDaTesto } from './impostazioni/filtri.ts';
 import { apriMenu, chiudiMenu, menuAperto, preparaMenu } from './interfaccia/menu.ts';
@@ -15,12 +15,13 @@ import { RAGGI_KM, type RaggioKm } from './vicini/vicini.ts';
 import { carburanteToccato, disegnaSceltaCarburante } from './impostazioni/scelta-carburante.ts';
 import { ordina, preparaLista, type Ordine } from './lista/lista.ts';
 import { disegnaLista } from './lista/vista.ts';
+import { appMappeDi } from './navigazione/naviga.ts';
 import { chiediPosizione, type Posizione } from './posizione/posizione.ts';
 import { entroRaggio } from './vicini/vicini.ts';
 import type { DatiPrezzi } from '../../condiviso/formato.ts';
 
 const html = document.documentElement;
-const dataPrezzi = document.querySelector<HTMLElement>('[data-data-prezzi]')!;
+const avviso = document.querySelector<HTMLElement>('[data-avviso-ritardo]')!;
 const contenuto = document.querySelector<HTMLElement>('[data-contenuto]')!;
 /** Il testo di partenza, da rimettere quando i prezzi arrivano dopo un errore. */
 const invito = contenuto.querySelector<HTMLElement>('.invito')!;
@@ -70,22 +71,27 @@ function mostraPartenza(): void {
   else contenuto.replaceChildren(invito);
 }
 
+/** La data dei prezzi non si mostra più: compare solo l'avviso se l'aggiornamento è in ritardo. */
+function mostraAvvisoRitardo(dataEstrazione: string): void {
+  const testo = avvisoRitardo(dataEstrazione, new Date());
+  avviso.hidden = !testo;
+  avviso.innerHTML = testo ? `${icona('prezzoVecchio')}<span>${testo}</span>` : '';
+}
+
 function mostraErrore(): void {
-  dataPrezzi.textContent = 'Prezzi non disponibili';
   contenuto.innerHTML = `<div class="messaggio" role="alert">${icona('offline')}<div>
     <p>Prezzi non disponibili. Controlla la connessione e riprova.</p>
     <button type="button" class="bottone secondario" data-riprova>Riprova</button></div></div>`;
 }
 
 async function avvia(): Promise<void> {
-  dataPrezzi.textContent = 'Carico i prezzi…';
   const esito = await caricaPrezzi();
   if (esito.tipo === 'errore') {
     mostraErrore();
     return;
   }
   dati = esito.dati;
-  dataPrezzi.textContent = testoDataPrezzi(dati.dataEstrazione);
+  mostraAvvisoRitardo(dati.dataEstrazione);
   if (posizione) mostraRisultati();
   else mostraPartenza();
 }
@@ -130,7 +136,13 @@ function mostraRisultati(sfuma = false): void {
   }
   const { carburante, modalita, raggioKm } = attuali;
   const lista = preparaLista(entroRaggio(dati.distributori, posizione, raggioKm), carburante, modalita);
-  contenuto.innerHTML = disegnaLista(lista, { carburante, raggioKm, ordine, voci: ordina(lista.voci, ordine) });
+  contenuto.innerHTML = disegnaLista(lista, {
+    carburante,
+    raggioKm,
+    ordine,
+    voci: ordina(lista.voci, ordine),
+    navigazione: { app: appMappeDi(navigator.userAgent), conNota: !preferenze.navigaUsato },
+  });
   if (sfuma) contenuto.querySelector('.righe')?.classList.add('aggiornata');
 }
 
@@ -141,6 +153,15 @@ contenuto.addEventListener('click', (evento) => {
   const bersaglio = evento.target as Element;
   if (bersaglio.closest('[data-riprova]')) {
     void avvia();
+    return;
+  }
+  if (bersaglio.closest('[data-naviga]')) {
+    // il link apre l'app di navigazione da solo; qui si ricorda solo che la nota non serve più
+    if (!preferenze.navigaUsato) {
+      preferenze = { ...preferenze, navigaUsato: true };
+      salvaPreferenze(preferenze);
+      contenuto.querySelector('.nota-naviga')?.remove();
+    }
     return;
   }
   if (bersaglio.closest('[data-ordina]')) {

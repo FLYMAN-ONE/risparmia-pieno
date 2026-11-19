@@ -1,4 +1,5 @@
-// Preferenze dell'utente, salvate sul telefono: SOLO le scelte (carburante, self/servito, raggio),
+// Preferenze dell'utente, salvate sul telefono: SOLO le scelte (carburante, self/servito, raggio)
+// e se il tasto Naviga è già stato usato (per non ripetere la nota),
 // MAI la posizione. Se la memoria del browser non è disponibile (navigazione privata,
 // dati cancellati), l'app funziona lo stesso e richiede la scelta.
 import type { Categoria } from '../../../condiviso/carburanti.ts';
@@ -15,6 +16,8 @@ export interface Preferenze {
   carburante?: CarburanteScelto;
   modalita?: Modalita;
   raggioKm?: RaggioKm;
+  /** Naviga già usato almeno una volta: la nota sotto il tasto non serve più */
+  navigaUsato?: true;
 }
 
 /** Le scelte da usare davvero: quelle salvate, oppure quelle di partenza. */
@@ -61,6 +64,7 @@ function pulisci(grezze: unknown): Preferenze {
   if (carburante) pulite.carburante = carburante;
   if (modalita) pulite.modalita = modalita;
   if (raggioKm) pulite.raggioKm = raggioKm;
+  if (g['navigaUsato'] === true) pulite.navigaUsato = true;
   return pulite;
 }
 

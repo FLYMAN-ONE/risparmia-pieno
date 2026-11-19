@@ -1,5 +1,5 @@
 // Filtri nella barra in alto (passo 2, layout A): carburante, self/servito, raggio.
-// Ogni filtro è una pillola; toccandola sale dal basso il pannello con le scelte.
+// Carburante e self/servito sono pillole con un menu sotto; il raggio è uno slider a 3 posizioni.
 import { NOME_CATEGORIA } from '../../../condiviso/carburanti.ts';
 import { icona } from '../icone/icone.ts';
 import type { Modalita } from '../lista/lista.ts';
