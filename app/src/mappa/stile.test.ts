@@ -40,6 +40,11 @@ describe('modulo della mappa', () => {
     expect(codice).toContain('transformRequest: richiestaSicura');
   });
 
+  it('indica a MapLibre il suo worker incluso nell\'app (senza, nel sito pubblicato la mappa resta vuota)', () => {
+    expect(codice).toContain("from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'");
+    expect(codice).toContain('setWorkerUrl(');
+  });
+
   it('non salva e non registra la posizione', () => {
     expect(codice).not.toMatch(/localStorage|sessionStorage|indexedDB|console\.|fetch\(/);
   });

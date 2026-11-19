@@ -1,8 +1,11 @@
 // La mappa (fase 5). Questo modulo e MapLibre si scaricano solo quando l'utente tocca "Mappa":
 // la vista Lista non contatta nessun dominio esterno (regola privacy 8).
 // La posizione serve solo a centrare la mappa e a disegnare il punto blu: resta in memoria.
-import { Map as MappaLibre, Marker, NavigationControl } from 'maplibre-gl';
+import { Map as MappaLibre, Marker, NavigationControl, setWorkerUrl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+// Il "worker" di MapLibre (disegna le tessere in parallelo) è un file a parte che Vite non vede da solo:
+// senza questa riga nel sito pubblicato la mappa resta vuota. È incluso nell'app, non scaricato da fuori.
+import indirizzoWorker from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { confiniRaggio, richiestaSicura, STILI, type Centro } from './stile.ts';
 
 export interface Mappa {
@@ -18,6 +21,8 @@ function scuro(): boolean {
 }
 
 const MARGINE_PX = 24;
+
+setWorkerUrl(indirizzoWorker);
 
 export function creaMappa(contenitore: HTMLElement, centro: Centro, raggioKm: number): Mappa {
   const mappa = new MappaLibre({
