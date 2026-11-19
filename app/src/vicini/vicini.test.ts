@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { distanzaKm } from './distanza.ts';
-import { entroRaggio } from './vicini.ts';
+import { entroRaggio, spostamentoSignificativo } from './vicini.ts';
 
 const centro = { lat: 45.66, lon: 8.79 }; // Gallarate
 
@@ -47,5 +47,17 @@ describe('entroRaggio', () => {
 
   it('senza distributori vicini restituisce un elenco vuoto', () => {
     expect(entroRaggio([a(50, 'n', 'lontano')], centro, 15)).toEqual([]);
+  });
+});
+
+describe('spostamentoSignificativo', () => {
+  const gallarate = { lat: 45.66, lon: 8.79 };
+  // 0,01 gradi di latitudine sono circa 1,1 km
+  it('un piccolo ritocco della mappa non ricalcola i prezzi', () => {
+    expect(spostamentoSignificativo(gallarate, { lat: 45.665, lon: 8.79 }, 5)).toBe(false);
+  });
+  it('uno spostamento di almeno un quinto del raggio sì', () => {
+    expect(spostamentoSignificativo(gallarate, { lat: 45.67, lon: 8.79 }, 5)).toBe(true);
+    expect(spostamentoSignificativo(gallarate, { lat: 45.67, lon: 8.79 }, 15)).toBe(false);
   });
 });

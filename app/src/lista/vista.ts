@@ -98,13 +98,13 @@ export interface OpzioniVista {
   navigazione: { app: AppMappe; conNota: boolean };
   /** il distributore aperto, se c'è (uno alla volta) */
   aperto?: number;
-  /** il comune cercato: le distanze partono da lì, non dalla posizione */
-  daComune?: string;
+  /** da dove partono le distanze, se non da te: "da Gallarate", "dal centro della mappa" */
+  da?: string;
 }
 
-/** "entro 5 km" oppure "entro 5 km da Gallarate" */
+/** "entro 5 km", "entro 5 km da Gallarate", "entro 5 km dal centro della mappa" */
 function entro(opzioni: OpzioniVista): string {
-  return `entro ${String(opzioni.raggioKm)} km${opzioni.daComune ? ` da ${esc(opzioni.daComune)}` : ''}`;
+  return `entro ${String(opzioni.raggioKm)} km${opzioni.da ? ` ${esc(opzioni.da)}` : ''}`;
 }
 
 export function disegnaLista(lista: Lista, opzioni: OpzioniVista): string {

@@ -19,7 +19,7 @@ import { unitaDi } from '../../condiviso/carburanti.ts';
 import { disegnaLista, disegnaRiquadro } from './lista/vista.ts';
 import { appMappeDi } from './navigazione/naviga.ts';
 import { chiediPosizione, type Posizione } from './posizione/posizione.ts';
-import { entroRaggio, RAGGIO_INIZIALE } from './vicini/vicini.ts';
+import { entroRaggio, RAGGIO_INIZIALE, spostamentoSignificativo } from './vicini/vicini.ts';
 import type { Mappa } from './mappa/mappa.ts';
 import type { Comune, DatiPrezzi } from '../../condiviso/formato.ts';
 import { cercaComuni } from './ricerca/cerca.ts';
@@ -49,6 +49,11 @@ let dati: DatiPrezzi | undefined;
 let posizione: Posizione | undefined;
 /** Il comune cercato, se i risultati sono intorno a un comune e non a te */
 let comuneCercato: Comune | undefined;
+/** Il centro della mappa, se l'utente l'ha spostata: i risultati sono intorno a quel punto.
+    Solo in memoria, come la posizione. */
+let centroMappa: Posizione | undefined;
+/** La mappa va rimessa sul cerchio del raggio (dopo "Intorno a me", un comune o un raggio nuovo) */
+let daInquadrare = true;
 /** Le scelte dell'utente (salvate sul telefono, senza la posizione) */
 let preferenze: Preferenze = leggiPreferenze();
 let ordine: Ordine = 'prezzo';
@@ -60,6 +65,11 @@ let inMappa = false;
 let mappa: Promise<Mappa> | undefined;
 /** L'ultima lista calcolata: la mappa mostra gli stessi distributori */
 let ultimaLista: Lista | undefined;
+
+/** Il punto da cui partono i risultati: il centro della mappa spostata, oppure la posizione (o il comune). */
+function centro(): Posizione | undefined {
+  return centroMappa ?? posizione;
+}
 
 /** I filtri in uso, se il carburante è già stato scelto. */
 function filtri(): Filtri | undefined {
@@ -139,12 +149,15 @@ async function intornoAMe(): Promise<void> {
   if (esito.tipo !== 'ok') {
     posizione = undefined;
     comuneCercato = undefined;
+    centroMappa = undefined;
     mostraVista(false); // il messaggio sta nella lista
     mostraPosizioneNonDisponibile();
     return;
   }
   posizione = esito.posizione;
   comuneCercato = undefined;
+  centroMappa = undefined;
+  daInquadrare = true;
   aperto = undefined;
   mostraRisultati();
   void aggiornaMappa(true);
@@ -152,8 +165,15 @@ async function intornoAMe(): Promise<void> {
   if (dati && preferenze.carburante && navigator.userActivation?.isActive) navigator.vibrate?.(10);
 }
 
+/** Da dove partono le distanze, se non da te */
+function daDove(): string | undefined {
+  if (centroMappa) return 'dal centro della mappa';
+  return comuneCercato ? `da ${nomeComune(comuneCercato)}` : undefined;
+}
+
 function mostraRisultati(sfuma = false): void {
-  if (!posizione) return;
+  const punto = centro();
+  if (!punto) return;
   if (!dati) {
     // la posizione è arrivata prima dei prezzi: si mostra tutto appena finisce il caricamento
     contenuto.innerHTML = '<p class="invito" role="status">Carico i prezzi…</p>';
@@ -166,7 +186,8 @@ function mostraRisultati(sfuma = false): void {
     return;
   }
   const { carburante, modalita, raggioKm } = attuali;
-  const lista = preparaLista(entroRaggio(dati.distributori, posizione, raggioKm), carburante, modalita);
+  const da = daDove();
+  const lista = preparaLista(entroRaggio(dati.distributori, punto, raggioKm), carburante, modalita);
   ultimaLista = lista;
   contenuto.innerHTML = disegnaLista(lista, {
     carburante,
@@ -175,7 +196,7 @@ function mostraRisultati(sfuma = false): void {
     voci: ordina(lista.voci, ordine),
     navigazione: { app: appMappeDi(navigator.userAgent), conNota: !preferenze.navigaUsato },
     ...(aperto === undefined ? {} : { aperto }),
-    ...(comuneCercato ? { daComune: nomeComune(comuneCercato) } : {}),
+    ...(da ? { da } : {}),
   });
   if (sfuma) contenuto.querySelector('.righe')?.classList.add('aggiornata');
   disegnaBottoneVista();
@@ -199,24 +220,43 @@ function mostraVista(mappaSi: boolean): void {
   else chiudiRiquadro();
 }
 
-/** Accende la mappa (scaricandola la prima volta) e la centra sulla posizione e sul raggio. */
+/** Il punto blu: sulla tua posizione, ma non quando si guarda un comune cercato (lì non ci sei tu) */
+function tuSeiQui(): Posizione | undefined {
+  return comuneCercato ? undefined : posizione;
+}
+
+/** Accende la mappa (scaricandola la prima volta). La rimette sul cerchio del raggio solo se serve:
+    tornando dalla lista resta dove l'avevi lasciata. */
 async function aggiornaMappa(vola = false): Promise<void> {
-  if (!inMappa || !posizione) return;
-  const centro = posizione;
+  const punto = centro();
+  if (!inMappa || !punto) return;
   const raggioKm = filtri()?.raggioKm ?? RAGGIO_INIZIALE;
+  const inquadra = daInquadrare;
+  daInquadrare = false;
   if (!mappa) {
     vistaMappa.insertAdjacentHTML('afterbegin', '<p class="caricamento" role="status">Carico la mappa…</p>');
     mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => {
-      const nuova = creaMappa(vistaMappa, centro, raggioKm, apriRiquadro);
-      nuova.puntoBlu(!comuneCercato);
+      const nuova = creaMappa(vistaMappa, punto, raggioKm, apriRiquadro, mappaSpostata);
+      nuova.puntoBlu(tuSeiQui());
       return nuova;
     });
     void prezziSullaMappa();
     return;
   }
   const pronta = await mappa;
-  pronta.puntoBlu(!comuneCercato); // sul comune cercato non c'è un "tu sei qui"
-  pronta.inquadra(centro, raggioKm, vola);
+  pronta.puntoBlu(tuSeiQui());
+  if (inquadra) pronta.inquadra(punto, raggioKm, vola);
+  else pronta.ridimensiona();
+}
+
+/** L'utente ha spostato la mappa: i prezzi si ricalcolano intorno al nuovo centro, tutto sul telefono. */
+function mappaSpostata(nuovo: Posizione): void {
+  const prima = centro();
+  const raggioKm = filtri()?.raggioKm;
+  if (!prima || !raggioKm || !spostamentoSignificativo(prima, nuovo, raggioKm)) return;
+  centroMappa = nuovo;
+  aperto = undefined;
+  mostraRisultati();
 }
 
 /** Passa alla mappa i distributori della lista (dopo ogni cambio di filtro o posizione). */
@@ -323,6 +363,8 @@ function scegliComune(indice: number): void {
   chiudiRicerca(false);
   comuneCercato = comune;
   posizione = { lat: comune.lat, lon: comune.lon };
+  centroMappa = undefined;
+  daInquadrare = true;
   aperto = undefined;
   mostraRisultati();
   void aggiornaMappa(true);
@@ -455,6 +497,7 @@ function cambiaRaggio(raggioKm: RaggioKm | undefined): void {
     tacca.toggleAttribute('data-scelta', tacca.dataset['raggioKm'] === String(raggioKm));
   }
   mostraRisultati(true);
+  daInquadrare = true; // il cerchio nuovo, intorno allo stesso centro
   void aggiornaMappa();
 }
 

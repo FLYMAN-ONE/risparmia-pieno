@@ -1,6 +1,7 @@
 // Trova i distributori entro un raggio dalla posizione, sul telefono.
 import { distanzaKm, type Punto } from './distanza.ts';
 
+
 /** Raggi tra cui scegliere (registro delle decisioni, 18/11/2026). All'apertura: 5 km. */
 export const RAGGI_KM = [5, 10, 15] as const;
 export type RaggioKm = (typeof RAGGI_KM)[number];
@@ -28,4 +29,15 @@ export function entroRaggio<T extends Punto>(distributori: readonly T[], centro:
     if (km <= raggioKm) vicini.push({ distributore, km });
   }
   return vicini.sort((a, b) => a.km - b.km);
+}
+
+/** Quanto deve spostarsi la mappa, in proporzione al raggio, perché i prezzi si ricalcolino */
+export const SPOSTAMENTO_MINIMO = 0.2;
+
+/**
+ * Spostando la mappa, i prezzi si ricalcolano intorno al nuovo centro solo se ci si è spostati
+ * abbastanza (1 km con il raggio di 5 km): così piccoli ritocchi non fanno cambiare colori e lista.
+ */
+export function spostamentoSignificativo(prima: Punto, dopo: Punto, raggioKm: number): boolean {
+  return distanzaKm(prima, dopo) >= raggioKm * SPOSTAMENTO_MINIMO;
 }

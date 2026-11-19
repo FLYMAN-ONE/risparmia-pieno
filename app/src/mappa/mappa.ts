@@ -13,13 +13,15 @@ import { formattaCifre, type Unita } from '../lista/prezzo.ts';
 import { nomeDi } from '../lista/vista.ts';
 
 export interface Mappa {
-  /** Inquadra il cerchio del raggio intorno al centro e sposta il punto blu.
+  /** Inquadra il cerchio del raggio intorno al centro.
       vola: con il movimento di MapLibre (passo 9), che con "Riduci movimento" diventa istantaneo da solo. */
   inquadra(centro: Centro, raggioKm: number, vola?: boolean): void;
+  /** Da richiamare quando la mappa torna visibile senza cambiare inquadratura */
+  ridimensiona(): void;
   /** I distributori della lista (già filtrati, colorati per fascia e in ordine di prezzo) */
   mostraPrezzi(voci: readonly Voce[], unita: Unita): void;
-  /** Il punto blu "tu sei qui": nascosto quando si guarda un comune cercato */
-  puntoBlu(visibile: boolean): void;
+  /** Il punto blu "tu sei qui" nella posizione data; nessuna posizione (comune cercato) = nascosto */
+  puntoBlu(posizione: Centro | undefined): void;
   /** Evidenzia il prezzo del distributore scelto (posizione nella lista), o nessuno */
   evidenzia(indice: number | undefined): void;
 }
@@ -54,12 +56,15 @@ setWorkerUrl(indirizzoWorker);
 /**
  * alTocco: chiamata con la posizione nella lista del distributore toccato (etichetta o pallino),
  * oppure con undefined se si tocca la mappa vuota (per chiudere il riquadro).
+ * alloSpostamento: chiamata con il nuovo centro quando l'utente sposta o ingrandisce la mappa
+ * (non quando la sposta l'app). Il centro resta sul telefono, come la posizione.
  */
 export function creaMappa(
   contenitore: HTMLElement,
   centro: Centro,
   raggioKm: number,
   alTocco: (indice: number | undefined) => void,
+  alloSpostamento: (centro: Centro) => void,
 ): Mappa {
   const mappa = new MappaLibre({
     container: contenitore,
@@ -83,6 +88,19 @@ export function creaMappa(
   punto.setAttribute('role', 'img');
   punto.setAttribute('aria-label', 'La tua posizione');
   const tu = new Marker({ element: punto }).setLngLat([centro.lon, centro.lat]).addTo(mappa);
+
+  // Spostamenti fatti dall'utente (dito, rotella, bottoni + e −, tocco su un gruppo):
+  // MapLibre li riconosce perché portano con sé l'evento del tocco. Quelli dell'app no.
+  let mossaDallUtente = false;
+  mappa.on('movestart', (evento) => {
+    if (evento.originalEvent) mossaDallUtente = true;
+  });
+  mappa.on('moveend', () => {
+    if (!mossaDallUtente) return;
+    mossaDallUtente = false;
+    const { lat, lng } = mappa.getCenter();
+    alloSpostamento({ lat, lon: lng });
+  });
 
   // La scritta "Carico la mappa…" resta finché non arriva il primo pezzo di cartina
   // (l'evento "load" di MapLibre aspetta tutte le tessere e con i prezzi sopra può tardare molto)
@@ -261,7 +279,7 @@ export function creaMappa(
     const gruppo = toccato.properties['cluster_id'] as number | undefined;
     if (gruppo !== undefined) {
       const zoom = await (mappa.getSource(SORGENTE) as GeoJSONSource).getClusterExpansionZoom(gruppo);
-      mappa.easeTo({ center: evento.lngLat, zoom });
+      mappa.easeTo({ center: evento.lngLat, zoom }, { originalEvent: evento.originalEvent }); // è un gesto dell'utente
       return;
     }
     alTocco(Number(toccato.properties['i']));
@@ -278,7 +296,7 @@ export function creaMappa(
 
   return {
     inquadra(nuovo, km, vola = false) {
-      tu.setLngLat([nuovo.lon, nuovo.lat]);
+      mossaDallUtente = false; // da qui in poi la muove l'app
       mappa.resize(); // il contenitore può essere stato nascosto
       mappa.fitBounds(confiniRaggio(nuovo, km), { padding: MARGINE_PX, ...(vola ? {} : { duration: 0 }) });
     },
@@ -288,8 +306,12 @@ export function creaMappa(
       evidenziato = undefined;
       aggiornaEtichette(); // ricalcola etichette e gruppi
     },
-    puntoBlu(visibile) {
-      punto.hidden = !visibile;
+    ridimensiona() {
+      mappa.resize();
+    },
+    puntoBlu(posizione) {
+      punto.hidden = !posizione;
+      if (posizione) tu.setLngLat([posizione.lon, posizione.lat]);
     },
     evidenzia(indice) {
       evidenziato = indice;
