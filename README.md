@@ -57,4 +57,10 @@ Questa sezione si completa durante lo sviluppo.
 - **…ricevo un'email "Ricevi dati MIMIT" fallito:** i dati del giorno non hanno superato i controlli di qualità e **non sono stati pubblicati**: l'app continua con quelli del giorno prima. Apri l'azione su GitHub (scheda Actions) e leggi le righe dopo "NON PUBBLICO". Se è un problema del Ministero di un giorno, si risolve da solo con la consegna successiva. Se si ripete, probabilmente è cambiato il formato: vedi sotto.
 - **…il Ministero cambia il formato dei file:** l'azione si ferma con "Prima riga inattesa" o "Intestazione cambiata". Nulla di sbagliato viene pubblicato. Va aggiornata la lettura in `cucina/src/leggi.ts` e le note in [`cucina/FORMATO-MIMIT.md`](cucina/FORMATO-MIMIT.md), aggiungendo un nuovo campione in `cucina/test/campioni/`.
 - **…compare un carburante nuovo:** nel resoconto dell'azione c'è "ATTENZIONE: carburanti sconosciuti". Finisce in "Altro" finché non lo si aggiunge alla tabella in `cucina/src/carburanti.ts`.
+- **…"Intorno a me" dice subito "Posizione non disponibile" (codice 1) su iPhone:** il telefono blocca la posizione per il sito, anche se Safari in generale ce l'ha. Controlla, in ordine:
+  1. Impostazioni → Privacy e sicurezza → Localizzazione → Siti web di Safari: "Mentre usi l'app";
+  2. in Safari, sulla pagina dell'app: icona a sinistra dell'indirizzo → Impostazioni sito web → Posizione: "Consenti" o "Chiedi", non "Rifiuta";
+  3. Tempo di utilizzo → Restrizioni contenuti e privacy → Localizzazione: consentita.
+
+  Gli altri codici: **2** il permesso c'è ma il telefono non trova la posizione (riprova all'aperto); **3** tempo scaduto (10 secondi); **0** la pagina è aperta dentro un'altra app (WhatsApp, Telegram…): aprila in Safari.
 - **…il sito non si apre:** _da scrivere nella fase 9._
