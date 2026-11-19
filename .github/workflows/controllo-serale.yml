@@ -31,8 +31,12 @@ jobs:
 
       - name: Controlla la data dei prezzi pubblicati
         run: |
-          # Il file del Ministero di oggi contiene i prezzi di ieri alle 8
-          attesa=$(date -u -d 'yesterday' +%Y-%m-%d)
+          # Il file del Ministero di oggi contiene i prezzi di ieri alle 8.
+          # GitHub a volte avvia il controllo con ore di ritardo, anche dopo mezzanotte:
+          # tolte 12 ore, si torna al giorno in cui il controllo doveva partire
+          # (fino a mezzogiorno UTC, prima della consegna del mattino, vale la sera prima).
+          giorno=$(date -u -d '12 hours ago' +%Y-%m-%d)
+          attesa=$(date -u -d "$giorno -1 day" +%Y-%m-%d)
           if ! gh release download dati-pubblicati --pattern prezzi.json --output prezzi.json; then
             echo "::error::Nessun file prezzi pubblicato"; exit 1
           fi
