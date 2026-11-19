@@ -21,7 +21,10 @@
     </main>
 
     <!-- La mappa: si scarica e si accende solo al tocco di "Mappa" -->
-    <section class="vista-mappa" data-mappa aria-label="Mappa" hidden></section>
+    <section class="vista-mappa" data-mappa aria-label="Mappa" hidden>
+      <!-- Il distributore toccato sulla mappa: riquadro in basso, senza velo -->
+      <div class="riquadro-mappa" data-riquadro role="region" aria-label="Distributore scelto" aria-live="polite" hidden></div>
+    </section>
 
     <nav class="barra-bassa" aria-label="Comandi">
       <button type="button" class="bottone grande" data-intorno>

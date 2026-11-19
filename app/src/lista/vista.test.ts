@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { DistributoreApp } from '../../../condiviso/formato.ts';
 import type { Lista, Voce } from './lista.ts';
-import { disegnaLista, nomeDi } from './vista.ts';
+import { disegnaLista, disegnaRiquadro, nomeDi } from './vista.ts';
 
 function voce(id: number, euro: number, altro: Partial<DistributoreApp> = {}, vecchio = false): Voce {
   return {
@@ -73,7 +73,7 @@ describe('disegnaLista', () => {
 
   it('il più conveniente non si ripete nelle righe', () => {
     const html = disegnaLista(lista, { ...opzioni, voci: lista.voci });
-    expect(html.match(/class="riga/g)).toHaveLength(1);
+    expect(html.match(/class="riga[ "]/g)).toHaveLength(1);
   });
 
   it('conta i distributori e il raggio', () => {
@@ -124,5 +124,54 @@ describe('casi limite', () => {
     const html = disegnaLista({ voci: [solo], migliore: solo, media: 1.689 }, { ...opzioni, voci: [solo] });
     expect(html).not.toContain('rispetto alla media');
     expect(html).toContain('1 distributore entro 5 km');
+  });
+});
+
+describe('scheda nella lista', () => {
+  const primo = voce(1, 1.689, { prezzi: [{ carburante: 'Gasolio', categoria: 'gasolio', premium: false, euro: 1.689, self: true, vecchio: false, comunicato: '2026-11-18' }] });
+  const secondo = voce(2, 1.699, { prezzi: [{ carburante: 'Benzina', categoria: 'benzina', premium: false, euro: 1.759, self: true, vecchio: false, comunicato: '2026-11-17' }] });
+  const lista: Lista = { voci: [primo, secondo], migliore: primo, media: 1.7 };
+
+  it('chiusa: ogni riga e il più conveniente hanno il bottone che apre, senza dettagli', () => {
+    const html = disegnaLista(lista, { ...opzioni, voci: lista.voci });
+    expect(html.match(/data-apri="/g)).toHaveLength(2);
+    expect(html.match(/aria-expanded="false"/g)).toHaveLength(2);
+    expect(html).not.toContain('tutti-prezzi');
+  });
+
+  it('aperta una riga: i suoi prezzi, la data del gestore e Naviga; solo quella', () => {
+    const html = disegnaLista(lista, { ...opzioni, voci: lista.voci, aperto: 2 });
+    expect(html.match(/aria-expanded="true"/g)).toHaveLength(1);
+    expect(html).toContain('aria-controls="prezzi-2"');
+    expect(html).toContain('id="prezzi-2"');
+    expect(html).toContain('1,759 €/l');
+    expect(html).toContain('Aggiornato dal gestore il 17/11');
+    expect(html).toMatch(/riga-dettagli[\s\S]*class="bottone secondario naviga"/);
+  });
+
+  it('aperto il più conveniente: i prezzi dentro il suo blocco', () => {
+    const html = disegnaLista(lista, { ...opzioni, voci: lista.voci, aperto: 1 });
+    expect(html).toMatch(/class="eroe[\s\S]*id="prezzi-1"[\s\S]*<\/article>/);
+  });
+});
+
+describe('disegnaRiquadro (mappa)', () => {
+  const v = voce(7, 1.689, { prezzi: [{ carburante: 'Gasolio', categoria: 'gasolio', premium: false, euro: 1.689, self: true, vecchio: false, comunicato: '2026-11-18' }] });
+
+  it('nome, distanza, prezzo, confronto, chiudi e Naviga', () => {
+    const html = disegnaRiquadro(v, 1.729, { carburante: 'gasolio', app: 'apple', tutti: false });
+    expect(html).toContain('Q8 · 1,2 km');
+    expect(html).toContain('1,689<span class="unita"> €/l</span>');
+    expect(html).toContain('−0,04 €');
+    expect(html).toContain('data-chiudi-riquadro aria-label="Chiudi"');
+    expect(html).toContain('data-naviga');
+    expect(html).toContain('data-apri="7" aria-expanded="false"');
+    expect(html).not.toContain('tutti-prezzi');
+  });
+
+  it('con "Tutti i prezzi" aperto mostra la tabella', () => {
+    const html = disegnaRiquadro(v, 1.729, { carburante: 'gasolio', app: 'apple', tutti: true });
+    expect(html).toContain('id="prezzi-7"');
+    expect(html).toContain('Aggiornato dal gestore il 18/11');
   });
 });

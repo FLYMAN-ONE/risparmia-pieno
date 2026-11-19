@@ -44,9 +44,17 @@
 /* ——— Righe: una tabella di prezzi, non carte ——— */
 .righe { list-style: none; margin: 0 calc(-1 * var(--margine)); padding: 0 var(--margine); background: var(--superficie); }
 .riga {
-  display: flex; align-items: center; gap: var(--s-3);
-  min-height: var(--tocco-min); padding: var(--s-3) 0; border-top: 1px solid var(--linea);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--s-3);
+  border-top: 1px solid var(--linea);
 }
+/* Tutta la riga (prezzo, nome, km) è un bottone che apre la scheda */
+.riga-apri {
+  appearance: none; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--s-3);
+  min-height: var(--tocco-min); padding: var(--s-3) 0; touch-action: manipulation;
+}
+.riga-dettagli { flex-basis: 100%; padding: 0 0 var(--s-4); display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-3); }
+.riga-dettagli .tutti-prezzi { align-self: stretch; }
 .riga:first-child { border-top: 0; }
 .riga .prezzo { font-size: var(--t-lista); min-width: 4.2ch; }
 .riga .chi { flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -61,6 +69,29 @@
 }
 .naviga-icona:active { transform: scale(var(--scala-tocco)); }
 .naviga-icona svg { width: 22px; height: 22px; }
+/* "Tutti i prezzi" nel più conveniente: bottone di testo come "Ordina" */
+.apri-dettagli {
+  appearance: none; border: 0; background: none; font: inherit; font-size: var(--t-dettaglio); font-weight: var(--peso-medio);
+  color: var(--azione-testo); cursor: pointer; min-height: var(--tocco-min); padding: 0; margin-top: var(--s-1);
+  display: inline-flex; align-items: center; gap: var(--s-1); touch-action: manipulation;
+}
+.apri-dettagli svg { width: 18px; height: 18px; transition: transform var(--durata-tocco) var(--curva-tocco); }
+.apri-dettagli[aria-expanded='true'] svg { transform: rotate(180deg); }
+
+/* ——— La scheda: tutti i prezzi del distributore ——— */
+.tutti-prezzi table { width: 100%; border-collapse: collapse; font-size: var(--t-dettaglio); }
+.tutti-prezzi th { text-align: left; font-weight: var(--peso-normale); color: var(--testo-2); padding: var(--s-1) 0; }
+.tutti-prezzi td {
+  text-align: right; padding: var(--s-1) 0; white-space: nowrap;
+  font-family: var(--font-prezzo); font-weight: var(--peso-prezzo); font-variant-numeric: tabular-nums; color: var(--cifre);
+}
+.tutti-prezzi tr + tr { border-top: 1px solid var(--linea); }
+.tutti-prezzi tr.scelto th { color: var(--testo); font-weight: var(--peso-medio); }
+.tutti-prezzi tr[data-vecchio] td { color: var(--testo-2); }
+.tutti-prezzi td .vecchio { margin-right: var(--s-2); font-family: var(--font-testo); font-weight: var(--peso-normale); }
+.tutti-prezzi .aggiornato { font-size: var(--t-dettaglio); color: var(--testo-2); margin-top: var(--s-2); }
+.eroe .tutti-prezzi { margin-top: var(--s-2); }
+
 .vecchio { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--t-dettaglio); color: var(--testo-2); white-space: nowrap; }
 .vecchio svg { width: var(--s-4); height: var(--s-4); flex: none; }
 

@@ -18,6 +18,8 @@ export interface Mappa {
   inquadra(centro: Centro, raggioKm: number, vola?: boolean): void;
   /** I distributori della lista (già filtrati, colorati per fascia e in ordine di prezzo) */
   mostraPrezzi(voci: readonly Voce[], unita: Unita): void;
+  /** Evidenzia il prezzo del distributore scelto (posizione nella lista), o nessuno */
+  evidenzia(indice: number | undefined): void;
 }
 
 /** Un colore del file dei token, letto al momento (cambia con il tema). */
@@ -47,7 +49,16 @@ const MARGINE_PX = 24;
 
 setWorkerUrl(indirizzoWorker);
 
-export function creaMappa(contenitore: HTMLElement, centro: Centro, raggioKm: number): Mappa {
+/**
+ * alTocco: chiamata con la posizione nella lista del distributore toccato (etichetta o pallino),
+ * oppure con undefined se si tocca la mappa vuota (per chiudere il riquadro).
+ */
+export function creaMappa(
+  contenitore: HTMLElement,
+  centro: Centro,
+  raggioKm: number,
+  alTocco: (indice: number | undefined) => void,
+): Mappa {
   const mappa = new MappaLibre({
     container: contenitore,
     style: scuro() ? STILI.scuro : STILI.chiaro,
@@ -97,7 +108,7 @@ export function creaMappa(contenitore: HTMLElement, centro: Centro, raggioKm: nu
         : [
             {
               type: 'Feature' as const,
-              properties: { fascia: v.fascia, vecchio: v.vecchio },
+              properties: { i, fascia: v.fascia, vecchio: v.vecchio },
               geometry: { type: 'Point' as const, coordinates: [v.distributore.lon, v.distributore.lat] },
             },
           ],
@@ -171,15 +182,25 @@ export function creaMappa(contenitore: HTMLElement, centro: Centro, raggioKm: nu
     return { larghezza: width, altezza: height };
   }
 
-  function creaEtichetta(voce: Voce): HTMLElement {
-    const el = document.createElement('span');
+  /** Il distributore evidenziato (con il riquadro aperto) */
+  let evidenziato: number | undefined;
+
+  /** L'etichetta è un bottone: toccandola si apre il riquadro di quel distributore */
+  function creaEtichetta(voce: Voce, indice = -1): HTMLElement {
+    const el = document.createElement('button');
+    el.type = 'button';
     el.className = `etichetta-prezzo fascia-${voce.fascia}${voce.vecchio ? ' e-vecchio' : ''}`;
     el.textContent = formattaCifre(voce.euro);
-    el.setAttribute('role', 'img');
+    el.dataset['indice'] = String(indice);
     el.setAttribute(
       'aria-label',
       `${nomeDi(voce)}, ${formattaCifre(voce.euro)} euro al ${unita === 'kg' ? 'chilo' : 'litro'}${voce.vecchio ? ', prezzo vecchio' : ''}`,
     );
+    if (indice === evidenziato) el.setAttribute('aria-pressed', 'true');
+    el.addEventListener('click', (evento) => {
+      evento.stopPropagation(); // il tocco non arriva alla mappa (che chiuderebbe il riquadro)
+      alTocco(indice);
+    });
     return el;
   }
 
@@ -196,9 +217,9 @@ export function creaMappa(contenitore: HTMLElement, centro: Centro, raggioKm: nu
     // un po' d'aria tra le etichette: la mappa resta leggibile
     const scelti = visibili.length ? scegliEtichette(visibili, { ...misura, distacco: DISTACCO_PX, massimo: MASSIMO_ETICHETTE }) : new Set<(typeof visibili)[number]>();
     riquadri = [...scelti].map((s) => riquadroDi(s, misura));
-    for (const { voce } of scelti) {
+    for (const { voce, i } of scelti) {
       etichette.push(
-        new Marker({ element: creaEtichetta(voce), anchor: 'bottom' }).setLngLat([voce.distributore.lon, voce.distributore.lat]).addTo(mappa),
+        new Marker({ element: creaEtichetta(voce, i), anchor: 'bottom' }).setLngLat([voce.distributore.lon, voce.distributore.lat]).addTo(mappa),
       );
     }
     conEtichetta = new Set([...scelti].map((s) => s.i));
@@ -226,17 +247,22 @@ export function creaMappa(contenitore: HTMLElement, centro: Centro, raggioKm: nu
     if (evento.sourceId === SORGENTE && evento.isSourceLoaded) nascondiGruppiCoperti();
   });
 
-  // Toccando un gruppo la mappa si avvicina quanto basta per dividerlo
-  mappa.on('click', LIVELLO_GRUPPI, async (evento) => {
-    const gruppo = evento.features?.[0];
-    const id = gruppo?.properties['cluster_id'] as number | undefined;
-    if (id === undefined) return;
-    const zoom = await (mappa.getSource(SORGENTE) as GeoJSONSource).getClusterExpansionZoom(id);
-    mappa.easeTo({ center: evento.lngLat, zoom });
-  });
-  // Toccando un pallino la mappa si avvicina, così compare la sua etichetta
-  mappa.on('click', LIVELLO, (evento) => {
-    mappa.easeTo({ center: evento.lngLat, zoom: mappa.getZoom() + 1.5 });
+  // Un solo gestore per i tocchi sulla mappa: gruppo → si avvicina; pallino → riquadro; vuoto → chiude
+  mappa.on('click', async (evento) => {
+    const [toccato] = mappa.getLayer(LIVELLO)
+      ? mappa.queryRenderedFeatures(evento.point, { layers: [LIVELLO_GRUPPI, LIVELLO] })
+      : [];
+    if (!toccato) {
+      alTocco(undefined);
+      return;
+    }
+    const gruppo = toccato.properties['cluster_id'] as number | undefined;
+    if (gruppo !== undefined) {
+      const zoom = await (mappa.getSource(SORGENTE) as GeoJSONSource).getClusterExpansionZoom(gruppo);
+      mappa.easeTo({ center: evento.lngLat, zoom });
+      return;
+    }
+    alTocco(Number(toccato.properties['i']));
   });
   for (const livello of [LIVELLO, LIVELLO_GRUPPI]) {
     mappa.on('mouseenter', livello, () => (mappa.getCanvas().style.cursor = 'pointer'));
@@ -257,7 +283,16 @@ export function creaMappa(contenitore: HTMLElement, centro: Centro, raggioKm: nu
     mostraPrezzi(nuove, nuovaUnita) {
       voci = nuove;
       unita = nuovaUnita;
+      evidenziato = undefined;
       aggiornaEtichette(); // ricalcola etichette e gruppi
+    },
+    evidenzia(indice) {
+      evidenziato = indice;
+      for (const m of etichette) {
+        const el = m.getElement();
+        el.toggleAttribute('aria-pressed', el.dataset['indice'] === String(indice));
+        if (el.hasAttribute('aria-pressed')) el.setAttribute('aria-pressed', 'true');
+      }
     },
   };
 }

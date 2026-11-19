@@ -16,7 +16,7 @@ import { RAGGI_KM, type RaggioKm } from './vicini/vicini.ts';
 import { carburanteToccato, disegnaSceltaCarburante } from './impostazioni/scelta-carburante.ts';
 import { ordina, preparaLista, type Lista, type Ordine } from './lista/lista.ts';
 import { unitaDi } from '../../condiviso/carburanti.ts';
-import { disegnaLista } from './lista/vista.ts';
+import { disegnaLista, disegnaRiquadro } from './lista/vista.ts';
 import { appMappeDi } from './navigazione/naviga.ts';
 import { chiediPosizione, type Posizione } from './posizione/posizione.ts';
 import { entroRaggio, RAGGIO_INIZIALE } from './vicini/vicini.ts';
@@ -33,6 +33,7 @@ const zonaFiltri = document.querySelector<HTMLElement>('[data-filtri]')!;
 const zonaRaggio = document.querySelector<HTMLElement>('[data-raggio]')!;
 const vistaMappa = document.querySelector<HTMLElement>('[data-mappa]')!;
 const bottoneVista = document.querySelector<HTMLButtonElement>('[data-cambia-vista]')!;
+const riquadro = document.querySelector<HTMLElement>('[data-riquadro]')!;
 
 // ——— Stato dell'app: tutto solo in memoria, tranne le preferenze ———
 /** I prezzi caricati */
@@ -42,6 +43,8 @@ let posizione: Posizione | undefined;
 /** Le scelte dell'utente (salvate sul telefono, senza la posizione) */
 let preferenze: Preferenze = leggiPreferenze();
 let ordine: Ordine = 'prezzo';
+/** Il distributore con la scheda aperta nella lista (uno alla volta) */
+let aperto: number | undefined;
 /** Lista o mappa: si parte sempre dalla lista e non si ricorda (passo 2) */
 let inMappa = false;
 /** La mappa, creata al primo tocco di "Mappa" */
@@ -156,6 +159,7 @@ function mostraRisultati(sfuma = false): void {
     ordine,
     voci: ordina(lista.voci, ordine),
     navigazione: { app: appMappeDi(navigator.userAgent), conNota: !preferenze.navigaUsato },
+    ...(aperto === undefined ? {} : { aperto }),
   });
   if (sfuma) contenuto.querySelector('.righe')?.classList.add('aggiornata');
   disegnaBottoneVista();
@@ -176,6 +180,7 @@ function mostraVista(mappaSi: boolean): void {
   document.body.classList.toggle('in-mappa', inMappa);
   disegnaBottoneVista();
   if (inMappa) void aggiornaMappa();
+  else chiudiRiquadro();
 }
 
 /** Accende la mappa (scaricandola la prima volta) e la centra sulla posizione e sul raggio. */
@@ -184,9 +189,8 @@ async function aggiornaMappa(vola = false): Promise<void> {
   const centro = posizione;
   const raggioKm = filtri()?.raggioKm ?? RAGGIO_INIZIALE;
   if (!mappa) {
-    vistaMappa.innerHTML = '<p class="caricamento" role="status">Carico la mappa…</p>';
-    // la scritta resta sotto la mappa finché la cartina non la copre
-    mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => creaMappa(vistaMappa, centro, raggioKm));
+    vistaMappa.insertAdjacentHTML('afterbegin', '<p class="caricamento" role="status">Carico la mappa…</p>');
+    mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => creaMappa(vistaMappa, centro, raggioKm, apriRiquadro));
     void prezziSullaMappa();
     return;
   }
@@ -197,12 +201,70 @@ async function aggiornaMappa(vola = false): Promise<void> {
 async function prezziSullaMappa(): Promise<void> {
   const carburante = filtri()?.carburante;
   if (!mappa || !ultimaLista || !carburante) return;
+  chiudiRiquadro(); // la lista è cambiata: il distributore scelto potrebbe non esserci più
   (await mappa).mostraPrezzi(ultimaLista.voci, unitaDi(carburante));
+}
+
+// ——— Riquadro del distributore sulla mappa ———
+/** Il distributore del riquadro (posizione nella lista) e se mostra tutti i prezzi */
+let nelRiquadro: { indice: number; tutti: boolean } | undefined;
+
+function disegnaIlRiquadro(): void {
+  const voce = nelRiquadro && ultimaLista?.voci[nelRiquadro.indice];
+  const carburante = filtri()?.carburante;
+  riquadro.hidden = !voce;
+  if (!voce || !ultimaLista || !carburante || !nelRiquadro) {
+    riquadro.replaceChildren();
+    return;
+  }
+  riquadro.innerHTML = disegnaRiquadro(voce, ultimaLista.media, {
+    carburante,
+    app: appMappeDi(navigator.userAgent),
+    tutti: nelRiquadro.tutti,
+  });
+}
+
+function apriRiquadro(indice: number | undefined): void {
+  if (indice === undefined) {
+    chiudiRiquadro();
+    return;
+  }
+  nelRiquadro = { indice, tutti: false };
+  disegnaIlRiquadro();
+  void mappa?.then((m) => m.evidenzia(indice));
+}
+
+function chiudiRiquadro(): void {
+  if (!nelRiquadro) return;
+  nelRiquadro = undefined;
+  disegnaIlRiquadro();
+  void mappa?.then((m) => m.evidenzia(undefined));
+}
+
+/** Il link apre l'app di navigazione da solo; qui si ricorda solo che la nota non serve più. */
+function ricordaNavigaUsato(): void {
+  if (preferenze.navigaUsato) return;
+  preferenze = { ...preferenze, navigaUsato: true };
+  salvaPreferenze(preferenze);
+  contenuto.querySelector('.nota-naviga')?.remove();
 }
 
 // ——— Tocchi ———
 bottoneIntorno.addEventListener('click', () => void intornoAMe());
 bottoneVista.addEventListener('click', () => mostraVista(!inMappa));
+
+riquadro.addEventListener('click', (evento) => {
+  const bersaglio = evento.target as Element;
+  if (bersaglio.closest('[data-chiudi-riquadro]')) chiudiRiquadro();
+  else if (bersaglio.closest('[data-apri]') && nelRiquadro) {
+    nelRiquadro = { ...nelRiquadro, tutti: !nelRiquadro.tutti };
+    disegnaIlRiquadro();
+    riquadro.querySelector<HTMLElement>('[data-apri]')?.focus({ preventScroll: true });
+  } else if (bersaglio.closest('[data-naviga]')) ricordaNavigaUsato();
+});
+document.addEventListener('keydown', (evento) => {
+  if (evento.key === 'Escape' && nelRiquadro) chiudiRiquadro();
+});
 
 contenuto.addEventListener('click', (evento) => {
   const bersaglio = evento.target as Element;
@@ -211,18 +273,22 @@ contenuto.addEventListener('click', (evento) => {
     return;
   }
   if (bersaglio.closest('[data-naviga]')) {
-    // il link apre l'app di navigazione da solo; qui si ricorda solo che la nota non serve più
-    if (!preferenze.navigaUsato) {
-      preferenze = { ...preferenze, navigaUsato: true };
-      salvaPreferenze(preferenze);
-      contenuto.querySelector('.nota-naviga')?.remove();
-    }
+    ricordaNavigaUsato();
     return;
   }
   const allarga = raggioDaTesto(bersaglio.closest<HTMLElement>('[data-allarga]')?.dataset['allarga']);
   if (allarga) {
     cambiaRaggio(allarga);
     disegnaBarraFiltri(); // lo slider si sposta sul nuovo raggio
+    return;
+  }
+  const apri = bersaglio.closest<HTMLElement>('[data-apri]');
+  if (apri) {
+    // Apre la scheda di quel distributore (e chiude l'altra), oppure la richiude
+    const id = Number(apri.dataset['apri']);
+    aperto = aperto === id ? undefined : id;
+    mostraRisultati();
+    contenuto.querySelector<HTMLElement>(`[data-apri="${String(id)}"]`)?.focus({ preventScroll: true });
     return;
   }
   if (bersaglio.closest('[data-ordina]')) {
