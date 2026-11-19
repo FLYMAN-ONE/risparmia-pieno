@@ -1,0 +1,20 @@
+/* Vista mappa (fase 5, passo 10). Usa solo i token. */
+
+/* In mappa la pagina è alta quanto lo schermo e la mappa riempie lo spazio tra le due barre */
+body.in-mappa { height: 100dvh; }
+.vista-mappa { flex: 1; position: relative; min-height: 0; background: var(--sfondo); }
+.vista-mappa[hidden] { display: none; }
+.vista-mappa .caricamento { padding: var(--s-6) var(--margine); text-align: center; color: var(--testo-2); }
+
+/* Passo 10: mappa desaturata, i prezzi sono l'unica cosa colorata */
+.vista-mappa .maplibregl-canvas { filter: var(--filtro-mappa); }
+
+/* Il punto blu "tu sei qui": solo sullo schermo */
+.tu-sei-qui {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--posizione); border: 3px solid var(--superficie);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--posizione) 20%, transparent);
+}
+
+/* Bottone Lista/Mappa: accanto a "Intorno a me", più stretto */
+.barra-bassa .cambia-vista { flex: none; }

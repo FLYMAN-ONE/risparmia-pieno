@@ -5,6 +5,7 @@ import './stile/base.css';
 import './stile/struttura.css';
 import './stile/lista.css';
 import './stile/filtri.css';
+import './stile/mappa.css';
 import { caricaPrezzi } from './dati/carica.ts';
 import { avvisoRitardo } from './dati/data.ts';
 import { icona, type NomeIcona } from './icone/icone.ts';
@@ -17,7 +18,8 @@ import { ordina, preparaLista, type Ordine } from './lista/lista.ts';
 import { disegnaLista } from './lista/vista.ts';
 import { appMappeDi } from './navigazione/naviga.ts';
 import { chiediPosizione, type Posizione } from './posizione/posizione.ts';
-import { entroRaggio } from './vicini/vicini.ts';
+import { entroRaggio, RAGGIO_INIZIALE } from './vicini/vicini.ts';
+import type { Mappa } from './mappa/mappa.ts';
 import type { DatiPrezzi } from '../../condiviso/formato.ts';
 
 const html = document.documentElement;
@@ -28,6 +30,8 @@ const invito = contenuto.querySelector<HTMLElement>('.invito')!;
 const bottoneIntorno = document.querySelector<HTMLButtonElement>('[data-intorno]')!;
 const zonaFiltri = document.querySelector<HTMLElement>('[data-filtri]')!;
 const zonaRaggio = document.querySelector<HTMLElement>('[data-raggio]')!;
+const vistaMappa = document.querySelector<HTMLElement>('[data-mappa]')!;
+const bottoneVista = document.querySelector<HTMLButtonElement>('[data-cambia-vista]')!;
 
 // ——— Stato dell'app: tutto solo in memoria, tranne le preferenze ———
 /** I prezzi caricati */
@@ -37,6 +41,10 @@ let posizione: Posizione | undefined;
 /** Le scelte dell'utente (salvate sul telefono, senza la posizione) */
 let preferenze: Preferenze = leggiPreferenze();
 let ordine: Ordine = 'prezzo';
+/** Lista o mappa: si parte sempre dalla lista e non si ricorda (passo 2) */
+let inMappa = false;
+/** La mappa, creata al primo tocco di "Mappa" */
+let mappa: Promise<Mappa> | undefined;
 
 /** I filtri in uso, se il carburante è già stato scelto. */
 function filtri(): Filtri | undefined {
@@ -112,11 +120,13 @@ async function intornoAMe(): Promise<void> {
   bottoneIntorno.removeAttribute('aria-busy');
   if (esito.tipo !== 'ok') {
     posizione = undefined;
+    mostraVista(false); // il messaggio sta nella lista
     mostraPosizioneNonDisponibile();
     return;
   }
   posizione = esito.posizione;
   mostraRisultati();
+  void aggiornaMappa(true);
   // lieve vibrazione: risultati pronti (passo 9). Solo Android; il telefono la permette solo subito dopo un tocco.
   if (dati && preferenze.carburante && navigator.userActivation?.isActive) navigator.vibrate?.(10);
 }
@@ -144,10 +154,44 @@ function mostraRisultati(sfuma = false): void {
     navigazione: { app: appMappeDi(navigator.userAgent), conNota: !preferenze.navigaUsato },
   });
   if (sfuma) contenuto.querySelector('.righe')?.classList.add('aggiornata');
+  disegnaBottoneVista();
+}
+
+// ——— Lista e mappa ———
+/** Il bottone Lista/Mappa compare quando c'è una posizione e c'è qualcosa da mostrare. */
+function disegnaBottoneVista(): void {
+  bottoneVista.hidden = !(posizione && dati && filtri());
+  bottoneVista.innerHTML = inMappa ? `${icona('lista')}Lista` : `${icona('mappa')}Mappa`;
+}
+
+function mostraVista(mappaSi: boolean): void {
+  inMappa = mappaSi;
+  contenuto.hidden = inMappa;
+  vistaMappa.hidden = !inMappa;
+  document.body.classList.toggle('in-mappa', inMappa);
+  disegnaBottoneVista();
+  if (inMappa) void aggiornaMappa();
+}
+
+/** Accende la mappa (scaricandola la prima volta) e la centra sulla posizione e sul raggio. */
+async function aggiornaMappa(vola = false): Promise<void> {
+  if (!inMappa || !posizione) return;
+  const centro = posizione;
+  const raggioKm = filtri()?.raggioKm ?? RAGGIO_INIZIALE;
+  if (!mappa) {
+    vistaMappa.innerHTML = '<p class="caricamento" role="status">Carico la mappa…</p>';
+    mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => {
+      vistaMappa.replaceChildren();
+      return creaMappa(vistaMappa, centro, raggioKm);
+    });
+    return;
+  }
+  (await mappa).inquadra(centro, raggioKm, vola);
 }
 
 // ——— Tocchi ———
 bottoneIntorno.addEventListener('click', () => void intornoAMe());
+bottoneVista.addEventListener('click', () => mostraVista(!inMappa));
 
 contenuto.addEventListener('click', (evento) => {
   const bersaglio = evento.target as Element;
@@ -228,6 +272,7 @@ function cambiaRaggio(raggioKm: RaggioKm | undefined): void {
     tacca.toggleAttribute('data-scelta', tacca.dataset['raggioKm'] === String(raggioKm));
   }
   mostraRisultati(true);
+  void aggiornaMappa();
 }
 
 zonaRaggio.addEventListener('input', (evento) => {

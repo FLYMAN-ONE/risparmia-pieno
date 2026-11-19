@@ -20,10 +20,14 @@
       <p class="invito">Tocca «Intorno a me» per vedere i distributori più convenienti vicino a te.</p>
     </main>
 
+    <!-- La mappa: si scarica e si accende solo al tocco di "Mappa" -->
+    <section class="vista-mappa" data-mappa aria-label="Mappa" hidden></section>
+
     <nav class="barra-bassa" aria-label="Comandi">
       <button type="button" class="bottone grande" data-intorno>
         <span data-icona="intornoAMe"></span>Intorno a me
       </button>
+      <button type="button" class="bottone secondario grande cambia-vista" data-cambia-vista hidden></button>
     </nav>
 
     <script type="module" src="./src/main.ts"></script>
