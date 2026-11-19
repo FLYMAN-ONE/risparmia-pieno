@@ -317,6 +317,7 @@ async function aggiornaMappa(vola = false): Promise<void> {
     // Senza rete la cartina non arriva (le tessere non si conservano sul telefono): lo si dice.
     // La scritta sparisce da sola appena arriva il primo pezzo di cartina.
     const scritta = navigator.onLine ? 'Carico la mappa…' : 'Sei offline: la cartina si vedrà quando torna la rete.';
+    vistaMappa.querySelector('.caricamento')?.remove(); // un tentativo precedente non riuscito
     vistaMappa.insertAdjacentHTML('afterbegin', `<p class="caricamento" role="status">${scritta}</p>`);
     mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => {
       const nuova = creaMappa(vistaMappa, punto, raggioKm, apriRiquadro, mappaSpostata, () =>
@@ -324,6 +325,12 @@ async function aggiornaMappa(vola = false): Promise<void> {
       );
       nuova.puntoBlu(tuSeiQui());
       return nuova;
+    });
+    // Se il pezzo della mappa non arriva (senza rete la prima volta, o app vecchia rimasta aperta
+    // dopo un aggiornamento) lo si dice, e al prossimo tocco di "Mappa" si riprova
+    mappa.catch(() => {
+      mappa = undefined;
+      vistaMappa.querySelector('.caricamento')?.replaceChildren('Mappa non disponibile. Controlla la connessione e riprova.');
     });
     void prezziSullaMappa();
     return;
@@ -349,7 +356,8 @@ async function prezziSullaMappa(): Promise<void> {
   const carburante = filtri()?.carburante;
   if (!mappa || !ultimaLista || !carburante) return;
   chiudiRiquadro(); // la lista è cambiata: il distributore scelto potrebbe non esserci più
-  (await mappa).mostraPrezzi(ultimaLista.voci, unitaDi(carburante));
+  const pronta = await mappa.catch(() => undefined); // non arrivata: il messaggio lo mostra aggiornaMappa
+  pronta?.mostraPrezzi(ultimaLista.voci, unitaDi(carburante));
 }
 
 // ——— Riquadro del distributore sulla mappa ———

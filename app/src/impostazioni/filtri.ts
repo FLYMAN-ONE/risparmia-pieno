@@ -61,8 +61,8 @@ export function disegnaRaggio(raggioKm: RaggioKm): string {
       <input type="range" min="0" max="${String(RAGGI_KM.length - 1)}" step="1" value="${String(posizione)}"
         data-slider-raggio aria-labelledby="etichetta-raggio" aria-valuetext="${String(raggioKm)} km" />
       <div class="tacche">${RAGGI_KM.map(
-        (r, i) => `<button type="button" class="tacca" data-raggio-km="${String(r)}" tabindex="-1"
-          style="--i: ${String(i)}" aria-hidden="true"${r === raggioKm ? ' data-scelta' : ''}>${String(r)} km</button>`,
+        (r) => `<button type="button" class="tacca" data-raggio-km="${String(r)}" tabindex="-1"
+          aria-hidden="true"${r === raggioKm ? ' data-scelta' : ''}>${String(r)} km</button>`,
       ).join('')}</div>
     </div>`;
 }

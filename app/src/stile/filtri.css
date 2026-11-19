@@ -90,11 +90,14 @@
 /* le distanze sotto, centrate su ogni posizione del pallino; si possono toccare */
 .tacche { position: absolute; inset: 22px 0 0; }
 .tacca {
-  position: absolute; top: 0; transform: translateX(-50%);
+  --i: 0; position: absolute; top: 0; transform: translateX(-50%);
   left: calc(var(--pallino) / 2 + (100% - var(--pallino)) * var(--i) / 2);
   appearance: none; border: 0; background: none; font: inherit; color: var(--testo-2); cursor: pointer;
   padding: var(--s-1) var(--s-2); white-space: nowrap; touch-action: manipulation;
 }
 /* l'ultima distanza si allinea al bordo destro: con il testo grande non esce dallo schermo */
+/* la posizione di ogni distanza (senza stili scritti nella pagina, vietati dalla CSP) */
+.tacca:nth-child(2) { --i: 1; }
+.tacca:nth-child(3) { --i: 2; }
 .tacca:last-child { left: auto; right: calc(-1 * var(--s-2)); transform: none; }
 .tacca[data-scelta] { color: var(--testo); font-weight: var(--peso-medio); }

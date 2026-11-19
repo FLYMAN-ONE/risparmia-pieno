@@ -5,12 +5,25 @@ import pacchetto from './package.json' with { type: 'json' };
 import { fileURLToPath } from 'node:url';
 import { defineConfig, type Plugin } from 'vitest/config';
 import { fileDaPrecaricare } from './app/src/offline/regole.ts';
+import { CSP } from './app/src/sicurezza/csp.ts';
 
 /**
  * Il custode dell'app (service worker) deve sapere quali file conservare e con quale impronta.
  * Questo pezzo, alla fine della costruzione, scrive in sw.js l'elenco dei file e un'impronta
  * che cambia solo se cambia l'app: così il telefono scarica la versione nuova solo quando serve.
  */
+/** La lista degli invitati (CSP) entra solo nella pagina pubblicata: l'anteprima di sviluppo ha bisogno di più libertà */
+function listaDegliInvitati(): Plugin {
+  return {
+    name: 'lista-degli-invitati',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler: (pagina) => pagina.replace('<meta charset="utf-8" />', `<meta charset="utf-8" />\n    <meta http-equiv="Content-Security-Policy" content="${CSP}" />`),
+    },
+  };
+}
+
 function custodeConElencoFile(): Plugin {
   return {
     name: 'custode-con-elenco-file',
@@ -44,6 +57,7 @@ export default defineConfig({
   base: './',
   plugins: [
     custodeConElencoFile(),
+    listaDegliInvitati(),
     {
       // In anteprima, "/campionario" e "/sistema" senza la barra finale portano
       // alla loro pagina invece che alla pagina principale.
