@@ -1,0 +1,139 @@
+/* Token di design — Risparmia Pieno
+   L'UNICO posto dove stanno colori, font, misure, raggi, ombre e tempi.
+   Ogni valore viene dal registro delle decisioni in ux-design.md (passi 3-10)
+   o dal campionario approvato. Il resto del codice usa solo var(--nome).
+   Per cambiare un valore: prima si aggiorna il registro, poi questo file. */
+
+/* ——— Colori: palette B "Totem" (passo 3) ———
+   Tema automatico: segue l'impostazione chiaro/scuro del telefono.
+   data-tema serve solo a forzarlo (per esempio nella pagina del sistema di design). */
+
+:root,
+[data-tema='chiaro'] {
+  color-scheme: light;
+  --sfondo: #F2F1EE;
+  --superficie: #FFFFFF;
+  --testo: #1C2126;            /* anche le cifre del prezzo */
+  --testo-2: #5A636B;          /* testo secondario */
+  --azione: #F5A524;           /* sfondo del bottone principale */
+  --su-azione: #1C2126;        /* testo sul bottone principale */
+  --bordo-azione: #B36F00;     /* bordo del bottone principale */
+  --azione-testo: #8C5A00;     /* link e bottoni secondari */
+  --cifre: #1C2126;            /* prezzi senza fascia (es. scheda) */
+  --conveniente: #0B7A55;      /* almeno 1 centesimo sotto la media locale (passo 4) */
+  --media: #5A636B;            /* entro 1 centesimo dalla media */
+  --caro: #B4501A;             /* almeno 1 centesimo sopra la media */
+  --linea: color-mix(in srgb, var(--testo) 12%, transparent); /* separatore delle righe */
+  --velo: rgb(0 0 0 / 0.35);   /* dietro il pannello aperto */
+  --posizione: #2F7BEF;        /* punto blu "tu sei qui" sulla mappa */
+}
+
+[data-tema='scuro'] {
+  color-scheme: dark;
+  --sfondo: #1C2126;           /* asfalto */
+  --superficie: #262C32;
+  --testo: #EEF1F3;
+  --testo-2: #A3AEB8;
+  --azione: #F5A524;           /* ambra LED */
+  --su-azione: #1C2126;
+  --bordo-azione: transparent;
+  --azione-testo: #F5A524;
+  --cifre: #F5A524;            /* le cifre del prezzo sono ambra, come sul cartellone */
+  --conveniente: #43C59A;
+  --media: #F5A524;            /* nel campionario scuro i prezzi nella media sono ambra */
+  --caro: #FF8A4C;
+  --linea: color-mix(in srgb, var(--testo) 12%, transparent);
+  --velo: rgb(0 0 0 / 0.5);
+  --posizione: #2F7BEF;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema='chiaro']) {
+    color-scheme: dark;
+    --sfondo: #1C2126;
+    --superficie: #262C32;
+    --testo: #EEF1F3;
+    --testo-2: #A3AEB8;
+    --azione: #F5A524;
+    --su-azione: #1C2126;
+    --bordo-azione: transparent;
+    --azione-testo: #F5A524;
+    --cifre: #F5A524;
+    --conveniente: #43C59A;
+    --media: #F5A524;
+    --caro: #FF8A4C;
+    --linea: color-mix(in srgb, var(--testo) 12%, transparent);
+    --velo: rgb(0 0 0 / 0.5);
+    --posizione: #2F7BEF;
+  }
+}
+
+/* ——— Tutto il resto è uguale in chiaro e in scuro ——— */
+:root {
+  /* Font (passo 5): Titillium Web, incluso nell'app */
+  --font-testo: 'Titillium Web', system-ui, sans-serif;
+  --font-prezzo: 'Titillium Web', system-ui, sans-serif;
+  --peso-normale: 400;
+  --peso-medio: 600;           /* nome del distributore, etichette */
+  --peso-prezzo: 700;
+  --interlinea: 1.45;
+
+  /* Scala tipografica (passo 6), in rem: 1rem = 17 px e cresce col testo del telefono */
+  --t-eroe: 3.059rem;          /* 52 px — il più conveniente */
+  --t-lista: 1.588rem;         /* 27 px — prezzo in lista */
+  --t-normale: 1rem;           /* 17 px — nome, indirizzo, testo */
+  --t-dettaglio: 0.824rem;     /* 14 px — distanza, data */
+  --t-minimo: 0.765rem;        /* 13 px — solo note legali */
+
+  /* Spazi (passo 8): griglia a 4 px */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --margine: 16px;             /* margine laterale sul telefono (24 px sul tablet, sotto) */
+  --larghezza-max: 720px;
+  --tocco-min: 48px;           /* altezza minima di bottoni e zone toccabili */
+
+  /* Raggi (passo 8) */
+  --raggio-pannello: 20px;
+  --raggio-bottone: 12px;
+  --raggio-etichetta: 8px;     /* etichette col prezzo sulla mappa */
+  --raggio-pillola: 999px;
+
+  /* Ombre (passo 8): una sola vera ombra, sul pannello dal basso */
+  --ombra-pannello: 0 -8px 32px rgb(0 0 0 / 0.18);
+  --ombra-mappa: 0 1px 4px rgb(0 0 0 / 0.28); /* solo per staccare le etichette dalla mappa */
+
+  /* Movimento (passo 9) */
+  --durata-pannello: 250ms;
+  --durata-lista: 180ms;
+  --curva: cubic-bezier(0.32, 0.72, 0, 1); /* parte veloce e si posa dolcemente */
+
+  /* Accessibilità */
+  --focus: 3px solid var(--azione-testo);
+  --focus-distanza: 2px;
+  --opacita-vecchio: 0.55;     /* prezzi vecchi: attenuati, con icona orologio (passo 4) */
+
+  /* Mappa (passo 10): stile OpenFreeMap desaturato */
+  --filtro-mappa: saturate(0.15) contrast(0.95);
+}
+
+@media (min-width: 600px) {
+  :root { --margine: 24px; }
+}
+
+/* "Riduci movimento" attivo sul telefono: tutto istantaneo */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --durata-pannello: 0ms;
+    --durata-lista: 0ms;
+  }
+}
+
+/* Unità di base: 17 px. Su iPhone segue la dimensione del testo scelta nelle impostazioni. */
+html { font-size: 106.25%; -webkit-text-size-adjust: 100%; }
+@supports (font: -apple-system-body) {
+  html { font: -apple-system-body; }
+}
