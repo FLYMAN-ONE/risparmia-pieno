@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { DistributoreApp } from '../../../condiviso/formato.ts';
 import type { Lista, Voce } from './lista.ts';
-import { disegnaLista, nomeDi, titoloCarburante } from './vista.ts';
+import { disegnaLista, nomeDi } from './vista.ts';
 
 function voce(id: number, euro: number, altro: Partial<DistributoreApp> = {}, vecchio = false): Voce {
   return {
@@ -26,7 +26,7 @@ function voce(id: number, euro: number, altro: Partial<DistributoreApp> = {}, ve
   };
 }
 
-const opzioni = { carburante: 'gasolio', modalita: 'self', raggioKm: 5, ordine: 'prezzo' } as const;
+const opzioni = { carburante: 'gasolio', raggioKm: 5, ordine: 'prezzo' } as const;
 
 describe('nomeDi', () => {
   it('mostra il marchio scritto', () => {
@@ -36,13 +36,6 @@ describe('nomeDi', () => {
   it('le pompe bianche si chiamano "Pompa bianca"', () => {
     expect(nomeDi(voce(1, 1.7, { bandiera: 'Pompe Bianche' }))).toBe('Pompa bianca');
     expect(nomeDi(voce(1, 1.7, { bandiera: '' }))).toBe('Pompa bianca');
-  });
-});
-
-describe('titoloCarburante', () => {
-  it('dice la modalità solo se conta', () => {
-    expect(titoloCarburante('gasolio', 'self')).toBe('Gasolio self');
-    expect(titoloCarburante('gpl', 'tutte')).toBe('GPL');
   });
 });
 
@@ -65,7 +58,7 @@ describe('disegnaLista', () => {
   });
 
   it('conta i distributori e il raggio', () => {
-    expect(disegnaLista(lista, { ...opzioni, voci: lista.voci })).toContain('Gasolio self · 2 distributori entro 5 km');
+    expect(disegnaLista(lista, { ...opzioni, voci: lista.voci })).toContain('<p>2 distributori entro 5 km');
   });
 
   it('per il metano usa €/kg', () => {

@@ -1,8 +1,8 @@
 // Disegna la lista dei prezzi (passo 2, layout A): il più conveniente in grande, poi gli altri in righe.
-import { NOME_CATEGORIA, unitaDi, type Categoria } from '../../../condiviso/carburanti.ts';
+import { unitaDi, type Categoria } from '../../../condiviso/carburanti.ts';
 import { giornoBreve } from '../dati/data.ts';
 import { icona } from '../icone/icone.ts';
-import type { Lista, Modalita, Ordine, Voce } from './lista.ts';
+import type { Lista, Ordine, Voce } from './lista.ts';
 import { formattaCifre, formattaDifferenza, formattaKm } from './prezzo.ts';
 import { esc, indirizzoBreve } from './testo.ts';
 
@@ -39,14 +39,8 @@ function riga(voce: Voce): string {
   </li>`;
 }
 
-export function titoloCarburante(carburante: Categoria, modalita: Modalita): string {
-  const nome = NOME_CATEGORIA[carburante];
-  return modalita === 'tutte' ? nome : `${nome} ${modalita}`;
-}
-
 export interface OpzioniVista {
   carburante: Categoria;
-  modalita: Modalita;
   raggioKm: number;
   ordine: Ordine;
   /** le voci già nell'ordine scelto */
@@ -65,7 +59,7 @@ export function disegnaLista(lista: Lista, opzioni: OpzioniVista): string {
   return `<section class="lista" aria-label="Distributori">
     ${eroe(migliore, media, unitaDi(opzioni.carburante))}
     <div class="lista-testa">
-      <p>${titoloCarburante(opzioni.carburante, opzioni.modalita)} · ${String(quanti)} ${quanti === 1 ? 'distributore' : 'distributori'} entro ${String(opzioni.raggioKm)} km</p>
+      <p>${String(quanti)} ${quanti === 1 ? 'distributore' : 'distributori'} entro ${String(opzioni.raggioKm)} km</p>
       <button type="button" class="ordina" data-ordina aria-label="Ordina per ${opzioni.ordine === 'prezzo' ? 'distanza' : 'prezzo'}">
         ${icona('ordina')}${opzioni.ordine === 'prezzo' ? 'Per prezzo' : 'Per distanza'}
       </button>

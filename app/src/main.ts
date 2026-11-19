@@ -7,12 +7,13 @@ import './stile/lista.css';
 import { caricaPrezzi } from './dati/carica.ts';
 import { testoDataPrezzi } from './dati/data.ts';
 import { icona, type NomeIcona } from './icone/icone.ts';
-import { leggiPreferenze, salvaPreferenze, type Preferenze } from './impostazioni/preferenze.ts';
+import { cambioDa, disegnaFiltri } from './impostazioni/filtri.ts';
+import { cambiaCarburante, filtriDa, leggiPreferenze, salvaPreferenze, type Filtri, type Preferenze } from './impostazioni/preferenze.ts';
 import { carburanteToccato, disegnaSceltaCarburante } from './impostazioni/scelta-carburante.ts';
-import { modalitaPredefinita, ordina, preparaLista, type Ordine } from './lista/lista.ts';
+import { ordina, preparaLista, type Ordine } from './lista/lista.ts';
 import { disegnaLista } from './lista/vista.ts';
 import { chiediPosizione, type Posizione } from './posizione/posizione.ts';
-import { entroRaggio, RAGGIO_INIZIALE } from './vicini/vicini.ts';
+import { entroRaggio } from './vicini/vicini.ts';
 import type { DatiPrezzi } from '../../condiviso/formato.ts';
 
 const html = document.documentElement;
@@ -21,6 +22,7 @@ const contenuto = document.querySelector<HTMLElement>('[data-contenuto]')!;
 /** Il testo di partenza, da rimettere quando i prezzi arrivano dopo un errore. */
 const invito = contenuto.querySelector<HTMLElement>('.invito')!;
 const bottoneIntorno = document.querySelector<HTMLButtonElement>('[data-intorno]')!;
+const zonaFiltri = document.querySelector<HTMLElement>('[data-filtri]')!;
 
 // ——— Stato dell'app: tutto solo in memoria, tranne le preferenze ———
 /** I prezzi caricati */
@@ -30,6 +32,19 @@ let posizione: Posizione | undefined;
 /** Le scelte dell'utente (salvate sul telefono, senza la posizione) */
 let preferenze: Preferenze = leggiPreferenze();
 let ordine: Ordine = 'prezzo';
+
+/** I filtri in uso, se il carburante è già stato scelto. */
+function filtri(): Filtri | undefined {
+  const { carburante } = preferenze;
+  return carburante ? filtriDa({ ...preferenze, carburante }) : undefined;
+}
+
+/** I filtri compaiono in alto dopo la scelta del carburante. */
+function disegnaBarraFiltri(): void {
+  const attuali = filtri();
+  zonaFiltri.hidden = !attuali;
+  zonaFiltri.innerHTML = attuali ? disegnaFiltri(attuali) : '';
+}
 
 function disegnaIcone(): void {
   for (const el of document.querySelectorAll<HTMLElement>('[data-icona]')) {
@@ -90,7 +105,8 @@ async function intornoAMe(): Promise<void> {
   }
   posizione = esito.posizione;
   mostraRisultati();
-  if (dati && preferenze.carburante) navigator.vibrate?.(10); // lieve vibrazione: risultati pronti (passo 9)
+  // lieve vibrazione: risultati pronti (passo 9). Solo Android; il telefono la permette solo subito dopo un tocco.
+  if (dati && preferenze.carburante && navigator.userActivation?.isActive) navigator.vibrate?.(10);
 }
 
 function mostraRisultati(sfuma = false): void {
@@ -100,16 +116,15 @@ function mostraRisultati(sfuma = false): void {
     contenuto.innerHTML = '<p class="invito" role="status">Carico i prezzi…</p>';
     return;
   }
-  const { carburante } = preferenze;
-  if (!carburante) {
+  const attuali = filtri();
+  if (!attuali) {
     // primo uso: prima la domanda, poi la lista compare da sola
     contenuto.innerHTML = disegnaSceltaCarburante();
     return;
   }
-  const modalita = modalitaPredefinita(carburante);
-  const raggioKm = RAGGIO_INIZIALE;
+  const { carburante, modalita, raggioKm } = attuali;
   const lista = preparaLista(entroRaggio(dati.distributori, posizione, raggioKm), carburante, modalita);
-  contenuto.innerHTML = disegnaLista(lista, { carburante, modalita, raggioKm, ordine, voci: ordina(lista.voci, ordine) });
+  contenuto.innerHTML = disegnaLista(lista, { carburante, raggioKm, ordine, voci: ordina(lista.voci, ordine) });
   if (sfuma) contenuto.querySelector('.righe')?.classList.add('aggiornata');
 }
 
@@ -130,14 +145,29 @@ contenuto.addEventListener('click', (evento) => {
   }
   const carburante = carburanteToccato(evento);
   if (carburante) {
-    preferenze = { ...preferenze, carburante };
+    preferenze = cambiaCarburante(preferenze, carburante);
     salvaPreferenze(preferenze);
+    disegnaBarraFiltri();
     if (posizione) mostraRisultati();
     else contenuto.replaceChildren(invito);
   }
 });
 
+zonaFiltri.addEventListener('change', (evento) => {
+  const cambio = cambioDa(evento.target as HTMLSelectElement);
+  if (!cambio) return;
+  preferenze =
+    cambio.filtro === 'carburante'
+      ? cambiaCarburante(preferenze, cambio.valore) // self/servito torna quello adatto al nuovo carburante
+      : { ...preferenze, [cambio.filtro]: cambio.valore };
+  salvaPreferenze(preferenze);
+  disegnaBarraFiltri();
+  zonaFiltri.querySelector<HTMLElement>(`[data-filtro="${cambio.filtro}"]`)?.focus();
+  mostraRisultati(true);
+});
+
 disegnaIcone();
+disegnaBarraFiltri();
 coloreBarraDiStato();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', coloreBarraDiStato);
 if (!preferenze.carburante) mostraPartenza();

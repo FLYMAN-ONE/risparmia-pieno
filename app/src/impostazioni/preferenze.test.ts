@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { leggiPreferenze, salvaPreferenze, type Preferenze } from './preferenze.ts';
+import { cambiaCarburante, filtriDa, leggiPreferenze, salvaPreferenze, type Preferenze } from './preferenze.ts';
 
 /** Una finta memoria del telefono. */
 function memoriaFinta(iniziale: Record<string, string> = {}): Storage & { dati: Record<string, string> } {
@@ -49,5 +49,41 @@ describe('preferenze', () => {
     const conIntruso = { carburante: 'gasolio', lat: 45.66, lon: 8.79 } as Preferenze;
     salvaPreferenze(conIntruso, memoria);
     expect(Object.values(memoria.dati).join()).not.toMatch(/lat|lon|45\.66/);
+  });
+
+  it('ricorda anche self/servito e raggio', () => {
+    const memoria = memoriaFinta();
+    salvaPreferenze({ carburante: 'benzina', modalita: 'servito', raggioKm: 15 }, memoria);
+    expect(leggiPreferenze(memoria)).toEqual({ carburante: 'benzina', modalita: 'servito', raggioKm: 15 });
+  });
+
+  it('ignora un raggio non previsto', () => {
+    const memoria = memoriaFinta({ 'risparmia-pieno.preferenze': '{"carburante":"gpl","raggioKm":50}' });
+    expect(leggiPreferenze(memoria)).toEqual({ carburante: 'gpl' });
+  });
+});
+
+describe('filtriDa', () => {
+  it('senza scelte: self e 5 km per la benzina', () => {
+    expect(filtriDa({ carburante: 'benzina' })).toEqual({ carburante: 'benzina', modalita: 'self', raggioKm: 5 });
+  });
+
+  it('senza scelte: self e servito insieme per il GPL', () => {
+    expect(filtriDa({ carburante: 'gpl' }).modalita).toBe('tutte');
+  });
+
+  it('usa le scelte salvate', () => {
+    expect(filtriDa({ carburante: 'gasolio', modalita: 'servito', raggioKm: 10 })).toEqual({
+      carburante: 'gasolio',
+      modalita: 'servito',
+      raggioKm: 10,
+    });
+  });
+});
+
+describe('cambiaCarburante', () => {
+  it('rimette self/servito adatto al nuovo carburante e tiene il raggio', () => {
+    const nuove = cambiaCarburante({ carburante: 'benzina', modalita: 'servito', raggioKm: 10 }, 'gpl');
+    expect(filtriDa(nuove as Required<Preferenze>)).toEqual({ carburante: 'gpl', modalita: 'tutte', raggioKm: 10 });
   });
 });

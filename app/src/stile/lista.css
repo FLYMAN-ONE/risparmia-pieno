@@ -52,7 +52,7 @@
 
 /* Riordino: dissolvenza breve (passo 9); con "Riduci movimento" la durata è 0 */
 .righe.aggiornata { animation: appare var(--durata-lista) ease-out; }
-@keyframes appare { from { opacity: 0; } }
+@keyframes appare { from { opacity: 0.4; } }
 
 /* ——— Domanda del primo uso ——— */
 .scelta-carburante { padding: var(--s-6) 0; text-align: center; }

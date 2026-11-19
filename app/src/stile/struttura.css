@@ -8,7 +8,25 @@ body { display: flex; flex-direction: column; }
   background: var(--superficie); border-bottom: 1px solid var(--linea);
   padding: calc(var(--s-3) + env(safe-area-inset-top, 0px)) var(--margine) var(--s-3);
 }
-.data-prezzi { font-size: var(--t-dettaglio); color: var(--testo-2); text-align: right; }
+.barra-alta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
+.data-prezzi { font-size: var(--t-dettaglio); color: var(--testo-2); text-align: right; margin-left: auto; }
+
+/* ——— Filtri: pillole con il selettore nativo del telefono ——— */
+.filtri { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.filtri[hidden] { display: none; }
+.filtro {
+  position: relative; display: inline-flex; align-items: center; gap: var(--s-1);
+  min-height: var(--tocco-min); padding: 0 var(--s-3) 0 var(--s-4);
+  border-radius: var(--raggio-pillola); background: var(--sfondo); box-shadow: inset 0 0 0 1px var(--linea);
+  font-weight: var(--peso-medio); white-space: nowrap;
+}
+.filtro select {
+  /* invisibile ma toccabile: copre tutta la pillola e apre la scelta nativa del telefono */
+  position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+  appearance: none; -webkit-appearance: none; border: 0; margin: 0; font: inherit;
+}
+.filtro:has(select:focus-visible) { outline: var(--focus); outline-offset: var(--focus-distanza); }
+.filtro svg { width: 18px; height: 18px; color: var(--testo-2); flex: none; pointer-events: none; }
 
 .contenuto {
   flex: 1;
