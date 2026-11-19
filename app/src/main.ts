@@ -7,6 +7,7 @@ import { caricaPrezzi } from './dati/carica.ts';
 import { testoDataPrezzi } from './dati/data.ts';
 import { icona, type NomeIcona } from './icone/icone.ts';
 import { chiediPosizione, type Posizione } from './posizione/posizione.ts';
+import { entroRaggio, RAGGIO_INIZIALE } from './vicini/vicini.ts';
 import type { DatiPrezzi } from '../../condiviso/formato.ts';
 
 const html = document.documentElement;
@@ -87,7 +88,9 @@ function mostraRisultati(): void {
     contenuto.innerHTML = '<p class="invito" role="status">Carico i prezzi…</p>';
     return;
   }
-  contenuto.innerHTML = '<p class="invito" role="status">Posizione trovata. La lista dei distributori arriva nel prossimo passo.</p>';
+  const vicini = entroRaggio(dati.distributori, posizione, RAGGIO_INIZIALE);
+  contenuto.innerHTML = `<p class="invito" role="status">${String(vicini.length)} distributori entro ${String(RAGGIO_INIZIALE)} km.
+    La lista arriva nel prossimo passo.</p>`;
 }
 
 bottoneIntorno.addEventListener('click', () => void intornoAMe());
