@@ -3,9 +3,14 @@ import './stile/font.css';
 import './stile/token.css';
 import './stile/base.css';
 import './stile/struttura.css';
+import './stile/lista.css';
 import { caricaPrezzi } from './dati/carica.ts';
 import { testoDataPrezzi } from './dati/data.ts';
 import { icona, type NomeIcona } from './icone/icone.ts';
+import { leggiPreferenze, salvaPreferenze, type Preferenze } from './impostazioni/preferenze.ts';
+import { carburanteToccato, disegnaSceltaCarburante } from './impostazioni/scelta-carburante.ts';
+import { modalitaPredefinita, ordina, preparaLista, type Ordine } from './lista/lista.ts';
+import { disegnaLista } from './lista/vista.ts';
 import { chiediPosizione, type Posizione } from './posizione/posizione.ts';
 import { entroRaggio, RAGGIO_INIZIALE } from './vicini/vicini.ts';
 import type { DatiPrezzi } from '../../condiviso/formato.ts';
@@ -15,9 +20,16 @@ const dataPrezzi = document.querySelector<HTMLElement>('[data-data-prezzi]')!;
 const contenuto = document.querySelector<HTMLElement>('[data-contenuto]')!;
 /** Il testo di partenza, da rimettere quando i prezzi arrivano dopo un errore. */
 const invito = contenuto.querySelector<HTMLElement>('.invito')!;
+const bottoneIntorno = document.querySelector<HTMLButtonElement>('[data-intorno]')!;
 
-/** I prezzi caricati: restano solo in memoria finché l'app è aperta. */
+// ——— Stato dell'app: tutto solo in memoria, tranne le preferenze ———
+/** I prezzi caricati */
 let dati: DatiPrezzi | undefined;
+/** La posizione: solo in questa variabile, finché l'app è aperta. Mai salvata. */
+let posizione: Posizione | undefined;
+/** Le scelte dell'utente (salvate sul telefono, senza la posizione) */
+let preferenze: Preferenze = leggiPreferenze();
+let ordine: Ordine = 'prezzo';
 
 function disegnaIcone(): void {
   for (const el of document.querySelectorAll<HTMLElement>('[data-icona]')) {
@@ -31,12 +43,17 @@ function coloreBarraDiStato(): void {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', colore);
 }
 
+/** Cosa mostrare quando non c'è (ancora) una lista: la domanda del primo uso o l'invito. */
+function mostraPartenza(): void {
+  if (!preferenze.carburante) contenuto.innerHTML = disegnaSceltaCarburante();
+  else contenuto.replaceChildren(invito);
+}
+
 function mostraErrore(): void {
   dataPrezzi.textContent = 'Prezzi non disponibili';
   contenuto.innerHTML = `<div class="messaggio" role="alert">${icona('offline')}<div>
     <p>Prezzi non disponibili. Controlla la connessione e riprova.</p>
     <button type="button" class="bottone secondario" data-riprova>Riprova</button></div></div>`;
-  contenuto.querySelector('[data-riprova]')!.addEventListener('click', () => void avvia());
 }
 
 async function avvia(): Promise<void> {
@@ -49,15 +66,10 @@ async function avvia(): Promise<void> {
   dati = esito.dati;
   dataPrezzi.textContent = testoDataPrezzi(dati.dataEstrazione);
   if (posizione) mostraRisultati();
-  else contenuto.replaceChildren(invito);
+  else mostraPartenza();
 }
 
 // ——— Intorno a me ———
-const bottoneIntorno = document.querySelector<HTMLButtonElement>('[data-intorno]')!;
-
-/** La posizione: solo in questa variabile, finché l'app è aperta. Mai salvata. */
-let posizione: Posizione | undefined;
-
 function mostraPosizioneNonDisponibile(): void {
   // Testo deciso al passo 11. Il bottone "Cerca un comune" arriva con la ricerca (fase 6).
   contenuto.innerHTML = `<div class="messaggio" role="alert">${icona('intornoAMe')}<div>
@@ -78,24 +90,55 @@ async function intornoAMe(): Promise<void> {
   }
   posizione = esito.posizione;
   mostraRisultati();
+  if (dati && preferenze.carburante) navigator.vibrate?.(10); // lieve vibrazione: risultati pronti (passo 9)
 }
 
-/** Provvisorio: la lista dei distributori vicini arriva nei prossimi task. */
-function mostraRisultati(): void {
+function mostraRisultati(sfuma = false): void {
   if (!posizione) return;
   if (!dati) {
     // la posizione è arrivata prima dei prezzi: si mostra tutto appena finisce il caricamento
     contenuto.innerHTML = '<p class="invito" role="status">Carico i prezzi…</p>';
     return;
   }
-  const vicini = entroRaggio(dati.distributori, posizione, RAGGIO_INIZIALE);
-  contenuto.innerHTML = `<p class="invito" role="status">${String(vicini.length)} distributori entro ${String(RAGGIO_INIZIALE)} km.
-    La lista arriva nel prossimo passo.</p>`;
+  const { carburante } = preferenze;
+  if (!carburante) {
+    // primo uso: prima la domanda, poi la lista compare da sola
+    contenuto.innerHTML = disegnaSceltaCarburante();
+    return;
+  }
+  const modalita = modalitaPredefinita(carburante);
+  const raggioKm = RAGGIO_INIZIALE;
+  const lista = preparaLista(entroRaggio(dati.distributori, posizione, raggioKm), carburante, modalita);
+  contenuto.innerHTML = disegnaLista(lista, { carburante, modalita, raggioKm, ordine, voci: ordina(lista.voci, ordine) });
+  if (sfuma) contenuto.querySelector('.righe')?.classList.add('aggiornata');
 }
 
+// ——— Tocchi ———
 bottoneIntorno.addEventListener('click', () => void intornoAMe());
+
+contenuto.addEventListener('click', (evento) => {
+  const bersaglio = evento.target as Element;
+  if (bersaglio.closest('[data-riprova]')) {
+    void avvia();
+    return;
+  }
+  if (bersaglio.closest('[data-ordina]')) {
+    ordine = ordine === 'prezzo' ? 'distanza' : 'prezzo';
+    mostraRisultati(true);
+    contenuto.querySelector<HTMLElement>('[data-ordina]')?.focus();
+    return;
+  }
+  const carburante = carburanteToccato(evento);
+  if (carburante) {
+    preferenze = { ...preferenze, carburante };
+    salvaPreferenze(preferenze);
+    if (posizione) mostraRisultati();
+    else contenuto.replaceChildren(invito);
+  }
+});
 
 disegnaIcone();
 coloreBarraDiStato();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', coloreBarraDiStato);
+if (!preferenze.carburante) mostraPartenza();
 void avvia();

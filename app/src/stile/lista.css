@@ -1,0 +1,61 @@
+/* Lista dei prezzi e domanda del primo uso. Usa solo i token. */
+
+/* ——— Prezzi ——— */
+.prezzo {
+  font-family: var(--font-prezzo); font-weight: var(--peso-prezzo);
+  font-variant-numeric: tabular-nums; color: var(--cifre); line-height: 1;
+}
+.prezzo .unita { font-family: var(--font-testo); font-weight: var(--peso-normale); font-size: 0.5em; color: var(--testo-2); }
+.fascia-conveniente .prezzo { color: var(--conveniente); }
+.fascia-media .prezzo { color: var(--media); }
+.fascia-caro .prezzo { color: var(--caro); }
+.e-vecchio > .prezzo { opacity: var(--opacita-vecchio); }
+
+/* ——— Il più conveniente ——— */
+.eroe { background: var(--superficie); padding: var(--s-4); margin: 0 calc(-1 * var(--margine)); padding-inline: var(--margine); }
+.eroe .etichetta { font-size: var(--t-dettaglio); color: var(--conveniente); font-weight: var(--peso-medio); }
+.eroe .prezzo { font-size: var(--t-eroe); margin: var(--s-1) 0 var(--s-2); }
+.eroe .chi { font-weight: var(--peso-medio); }
+.eroe .dove, .eroe .delta { font-size: var(--t-dettaglio); color: var(--testo-2); }
+.eroe .delta { margin-top: var(--s-1); }
+.eroe.fascia-conveniente .delta b { color: var(--conveniente); font-weight: var(--peso-medio); }
+.eroe .delta b { font-weight: var(--peso-medio); }
+
+/* ——— Testata della lista e ordinamento ——— */
+.lista-testa {
+  display: flex; align-items: center; gap: var(--s-2);
+  padding: var(--s-4) 0 var(--s-1); font-size: var(--t-dettaglio); color: var(--testo-2);
+}
+.lista-testa p { flex: 1; }
+.ordina {
+  appearance: none; border: 0; background: none; font: inherit; color: var(--azione-testo); font-weight: var(--peso-medio);
+  min-height: var(--tocco-min); padding: 0 var(--s-2); margin-right: calc(-1 * var(--s-2));
+  display: inline-flex; align-items: center; gap: var(--s-1); cursor: pointer; border-radius: var(--raggio-bottone);
+  touch-action: manipulation; white-space: nowrap;
+}
+.ordina svg { width: 20px; height: 20px; }
+
+/* ——— Righe: una tabella di prezzi, non carte ——— */
+.righe { list-style: none; margin: 0 calc(-1 * var(--margine)); padding: 0 var(--margine); background: var(--superficie); }
+.riga {
+  display: flex; align-items: center; gap: var(--s-3);
+  min-height: var(--tocco-min); padding: var(--s-3) 0; border-top: 1px solid var(--linea);
+}
+.riga:first-child { border-top: 0; }
+.riga .prezzo { font-size: var(--t-lista); min-width: 4.2ch; }
+.riga .chi { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.riga .nome { font-weight: var(--peso-medio); }
+.riga .dove { font-size: var(--t-dettaglio); color: var(--testo-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.riga .km { font-size: var(--t-dettaglio); color: var(--testo-2); white-space: nowrap; }
+.vecchio { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--t-dettaglio); color: var(--testo-2); white-space: nowrap; }
+.vecchio svg { width: var(--s-4); height: var(--s-4); flex: none; }
+
+/* Riordino: dissolvenza breve (passo 9); con "Riduci movimento" la durata è 0 */
+.righe.aggiornata { animation: appare var(--durata-lista) ease-out; }
+@keyframes appare { from { opacity: 0; } }
+
+/* ——— Domanda del primo uso ——— */
+.scelta-carburante { padding: var(--s-6) 0; text-align: center; }
+.scelta-carburante h2 { font-size: var(--t-normale); font-weight: var(--peso-medio); margin: 0 0 var(--s-4); }
+.scelte { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2); }
+.scelte .bottone { min-width: 7.5rem; }
