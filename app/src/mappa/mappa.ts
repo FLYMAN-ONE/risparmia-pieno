@@ -18,6 +18,8 @@ export interface Mappa {
   inquadra(centro: Centro, raggioKm: number, vola?: boolean): void;
   /** I distributori della lista (già filtrati, colorati per fascia e in ordine di prezzo) */
   mostraPrezzi(voci: readonly Voce[], unita: Unita): void;
+  /** Il punto blu "tu sei qui": nascosto quando si guarda un comune cercato */
+  puntoBlu(visibile: boolean): void;
   /** Evidenzia il prezzo del distributore scelto (posizione nella lista), o nessuno */
   evidenzia(indice: number | undefined): void;
 }
@@ -285,6 +287,9 @@ export function creaMappa(
       unita = nuovaUnita;
       evidenziato = undefined;
       aggiornaEtichette(); // ricalcola etichette e gruppi
+    },
+    puntoBlu(visibile) {
+      punto.hidden = !visibile;
     },
     evidenzia(indice) {
       evidenziato = indice;

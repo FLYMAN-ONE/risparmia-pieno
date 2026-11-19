@@ -21,7 +21,9 @@ import { appMappeDi } from './navigazione/naviga.ts';
 import { chiediPosizione, type Posizione } from './posizione/posizione.ts';
 import { entroRaggio, RAGGIO_INIZIALE } from './vicini/vicini.ts';
 import type { Mappa } from './mappa/mappa.ts';
-import type { DatiPrezzi } from '../../condiviso/formato.ts';
+import type { Comune, DatiPrezzi } from '../../condiviso/formato.ts';
+import { cercaComuni } from './ricerca/cerca.ts';
+import { disegnaSuggerimenti, nomeComune } from './ricerca/suggerimenti.ts';
 
 const html = document.documentElement;
 const avviso = document.querySelector<HTMLElement>('[data-avviso-ritardo]')!;
@@ -34,12 +36,19 @@ const zonaRaggio = document.querySelector<HTMLElement>('[data-raggio]')!;
 const vistaMappa = document.querySelector<HTMLElement>('[data-mappa]')!;
 const bottoneVista = document.querySelector<HTMLButtonElement>('[data-cambia-vista]')!;
 const riquadro = document.querySelector<HTMLElement>('[data-riquadro]')!;
+const barraAlta = document.querySelector<HTMLElement>('.barra-alta')!;
+const formRicerca = document.querySelector<HTMLFormElement>('[data-ricerca]')!;
+const campoRicerca = document.querySelector<HTMLInputElement>('[data-campo-ricerca]')!;
+const bottoneCerca = document.querySelector<HTMLButtonElement>('[data-cerca]')!;
 
 // ——— Stato dell'app: tutto solo in memoria, tranne le preferenze ———
 /** I prezzi caricati */
 let dati: DatiPrezzi | undefined;
-/** La posizione: solo in questa variabile, finché l'app è aperta. Mai salvata. */
+/** Il centro dei risultati: la posizione del GPS oppure il comune cercato.
+    Solo in questa variabile, finché l'app è aperta. Mai salvata (né la posizione, né il comune). */
 let posizione: Posizione | undefined;
+/** Il comune cercato, se i risultati sono intorno a un comune e non a te */
+let comuneCercato: Comune | undefined;
 /** Le scelte dell'utente (salvate sul telefono, senza la posizione) */
 let preferenze: Preferenze = leggiPreferenze();
 let ordine: Ordine = 'prezzo';
@@ -106,19 +115,22 @@ async function avvia(): Promise<void> {
   }
   dati = esito.dati;
   mostraAvvisoRitardo(dati.dataEstrazione);
-  if (posizione) mostraRisultati();
+  if (!formRicerca.hidden) mostraSuggerimenti(); // si stava già scrivendo il nome di un comune
+  else if (posizione) mostraRisultati();
   else mostraPartenza();
 }
 
 // ——— Intorno a me ———
 function mostraPosizioneNonDisponibile(): void {
-  // Testo deciso al passo 11. Il bottone "Cerca un comune" arriva con la ricerca (fase 6).
+  // Testo e bottone decisi al passo 11
   contenuto.innerHTML = `<div class="messaggio" role="alert">${icona('intornoAMe')}<div>
-    <p>Posizione non disponibile. Cerca un comune oppure attiva la posizione nelle impostazioni.</p></div></div>`;
+    <p>Posizione non disponibile. Cerca un comune oppure attiva la posizione nelle impostazioni.</p>
+    <button type="button" class="bottone secondario" data-cerca>Cerca un comune</button></div></div>`;
 }
 
 async function intornoAMe(): Promise<void> {
   if (bottoneIntorno.getAttribute('aria-busy') === 'true') return; // ignora i tocchi doppi
+  chiudiRicerca(false);
   bottoneIntorno.setAttribute('aria-busy', 'true');
   contenuto.innerHTML = '<p class="invito" role="status">Cerco la tua posizione…</p>';
 
@@ -126,11 +138,14 @@ async function intornoAMe(): Promise<void> {
   bottoneIntorno.removeAttribute('aria-busy');
   if (esito.tipo !== 'ok') {
     posizione = undefined;
+    comuneCercato = undefined;
     mostraVista(false); // il messaggio sta nella lista
     mostraPosizioneNonDisponibile();
     return;
   }
   posizione = esito.posizione;
+  comuneCercato = undefined;
+  aperto = undefined;
   mostraRisultati();
   void aggiornaMappa(true);
   // lieve vibrazione: risultati pronti (passo 9). Solo Android; il telefono la permette solo subito dopo un tocco.
@@ -160,6 +175,7 @@ function mostraRisultati(sfuma = false): void {
     voci: ordina(lista.voci, ordine),
     navigazione: { app: appMappeDi(navigator.userAgent), conNota: !preferenze.navigaUsato },
     ...(aperto === undefined ? {} : { aperto }),
+    ...(comuneCercato ? { daComune: nomeComune(comuneCercato) } : {}),
   });
   if (sfuma) contenuto.querySelector('.righe')?.classList.add('aggiornata');
   disegnaBottoneVista();
@@ -190,11 +206,17 @@ async function aggiornaMappa(vola = false): Promise<void> {
   const raggioKm = filtri()?.raggioKm ?? RAGGIO_INIZIALE;
   if (!mappa) {
     vistaMappa.insertAdjacentHTML('afterbegin', '<p class="caricamento" role="status">Carico la mappa…</p>');
-    mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => creaMappa(vistaMappa, centro, raggioKm, apriRiquadro));
+    mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => {
+      const nuova = creaMappa(vistaMappa, centro, raggioKm, apriRiquadro);
+      nuova.puntoBlu(!comuneCercato);
+      return nuova;
+    });
     void prezziSullaMappa();
     return;
   }
-  (await mappa).inquadra(centro, raggioKm, vola);
+  const pronta = await mappa;
+  pronta.puntoBlu(!comuneCercato); // sul comune cercato non c'è un "tu sei qui"
+  pronta.inquadra(centro, raggioKm, vola);
 }
 
 /** Passa alla mappa i distributori della lista (dopo ogni cambio di filtro o posizione). */
@@ -249,6 +271,77 @@ function ricordaNavigaUsato(): void {
   contenuto.querySelector('.nota-naviga')?.remove();
 }
 
+// ——— Ricerca del comune (fase 6): tutta sul telefono ———
+/** Quanti distributori ha ogni comune: a parità, nei suggerimenti viene prima il comune più grande */
+let distributoriPerComune: Map<Comune, number> | undefined;
+
+function importanza(comune: Comune): number {
+  if (!distributoriPerComune && dati) {
+    distributoriPerComune = new Map();
+    for (const d of dati.distributori) distributoriPerComune.set(d.comune, (distributoriPerComune.get(d.comune) ?? 0) + 1);
+  }
+  return distributoriPerComune?.get(comune) ?? 0;
+}
+
+function apriRicerca(): void {
+  chiudiMenu(true);
+  mostraVista(false); // i suggerimenti stanno al posto della lista
+  barraAlta.classList.add('cerca');
+  formRicerca.hidden = false;
+  bottoneCerca.setAttribute('aria-expanded', 'true');
+  campoRicerca.value = '';
+  campoRicerca.focus(); // nello stesso tocco: così l'iPhone apre la tastiera
+  mostraSuggerimenti();
+}
+
+/** ripristina: torna a quello che c'era prima (risultati o partenza) */
+function chiudiRicerca(ripristina = true): void {
+  if (formRicerca.hidden) return;
+  formRicerca.hidden = true;
+  barraAlta.classList.remove('cerca');
+  bottoneCerca.removeAttribute('aria-expanded');
+  campoRicerca.blur();
+  if (!ripristina) return;
+  if (posizione) mostraRisultati();
+  else mostraPartenza();
+}
+
+function suggeriti(): { comune: Comune; indice: number }[] {
+  if (!dati) return [];
+  const { comuni } = dati;
+  return cercaComuni(comuni, campoRicerca.value, importanza).map((comune) => ({ comune, indice: comuni.indexOf(comune) }));
+}
+
+function mostraSuggerimenti(): void {
+  contenuto.innerHTML = dati ? disegnaSuggerimenti(campoRicerca.value, suggeriti()) : '<p class="invito" role="status">Carico i prezzi…</p>';
+}
+
+/** Scelto un comune: risultati come per "Intorno a me", ma intorno al comune */
+function scegliComune(indice: number): void {
+  const comune = dati?.comuni[indice];
+  if (!comune) return;
+  chiudiRicerca(false);
+  comuneCercato = comune;
+  posizione = { lat: comune.lat, lon: comune.lon };
+  aperto = undefined;
+  mostraRisultati();
+  void aggiornaMappa(true);
+  bottoneCerca.focus({ preventScroll: true });
+}
+
+campoRicerca.addEventListener('input', mostraSuggerimenti);
+// Invio sulla tastiera: si sceglie il primo suggerimento
+formRicerca.addEventListener('submit', (evento) => {
+  evento.preventDefault();
+  const [primo] = suggeriti();
+  if (primo) scegliComune(primo.indice);
+});
+formRicerca.querySelector('[data-annulla-ricerca]')?.addEventListener('click', () => {
+  chiudiRicerca();
+  bottoneCerca.focus({ preventScroll: true });
+});
+bottoneCerca.addEventListener('click', () => (formRicerca.hidden ? apriRicerca() : chiudiRicerca()));
+
 // ——— Tocchi ———
 bottoneIntorno.addEventListener('click', () => void intornoAMe());
 bottoneVista.addEventListener('click', () => mostraVista(!inMappa));
@@ -263,13 +356,26 @@ riquadro.addEventListener('click', (evento) => {
   } else if (bersaglio.closest('[data-naviga]')) ricordaNavigaUsato();
 });
 document.addEventListener('keydown', (evento) => {
-  if (evento.key === 'Escape' && nelRiquadro) chiudiRiquadro();
+  if (evento.key !== 'Escape') return;
+  if (!formRicerca.hidden) {
+    chiudiRicerca();
+    bottoneCerca.focus({ preventScroll: true });
+  } else if (nelRiquadro) chiudiRiquadro();
 });
 
 contenuto.addEventListener('click', (evento) => {
   const bersaglio = evento.target as Element;
   if (bersaglio.closest('[data-riprova]')) {
     void avvia();
+    return;
+  }
+  const comune = bersaglio.closest<HTMLElement>('[data-comune]');
+  if (comune) {
+    scegliComune(Number(comune.dataset['comune']));
+    return;
+  }
+  if (bersaglio.closest('[data-cerca]')) {
+    apriRicerca();
     return;
   }
   if (bersaglio.closest('[data-naviga]')) {

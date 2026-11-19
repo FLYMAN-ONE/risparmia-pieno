@@ -175,3 +175,14 @@ describe('disegnaRiquadro (mappa)', () => {
     expect(html).toContain('Aggiornato dal gestore il 18/11');
   });
 });
+
+describe('risultati di un comune cercato', () => {
+  it('la testata e il messaggio dicono da dove partono le distanze', () => {
+    const primo = voce(1, 1.689);
+    const lista: Lista = { voci: [primo], migliore: primo, media: 1.689 };
+    expect(disegnaLista(lista, { ...opzioni, voci: [primo], daComune: 'Gallarate' })).toContain('1 distributore entro 5 km da Gallarate');
+    expect(disegnaLista({ voci: [], migliore: undefined, media: 0 }, { ...opzioni, voci: [], daComune: 'Gallarate' })).toContain(
+      'Nessun distributore entro 5 km da Gallarate.',
+    );
+  });
+});

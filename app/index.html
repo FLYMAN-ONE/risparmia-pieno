@@ -11,6 +11,16 @@
   </head>
   <body>
     <header class="barra-alta">
+      <!-- Ricerca del comune: compare al tocco della lente, al posto dei filtri -->
+      <form class="ricerca" data-ricerca role="search" hidden>
+        <label class="campo-ricerca">
+          <span data-icona="cerca"></span>
+          <span class="solo-lettori">Cerca un comune</span>
+          <input type="search" data-campo-ricerca placeholder="Cerca un comune" autocomplete="off" autocapitalize="words"
+            autocorrect="off" spellcheck="false" enterkeyhint="search" />
+        </label>
+        <button type="button" class="annulla-ricerca" data-annulla-ricerca>Annulla</button>
+      </form>
       <div class="filtri" data-filtri hidden></div>
       <p class="avviso-ritardo" data-avviso-ritardo role="status" hidden></p>
       <div class="raggio" data-raggio hidden></div>
@@ -29,6 +39,9 @@
     <nav class="barra-bassa" aria-label="Comandi">
       <button type="button" class="bottone grande" data-intorno>
         <span data-icona="intornoAMe"></span>Intorno a me
+      </button>
+      <button type="button" class="bottone secondario grande cerca-comune" data-cerca aria-label="Cerca un comune">
+        <span data-icona="cerca"></span>
       </button>
       <button type="button" class="bottone secondario grande cambia-vista" data-cambia-vista hidden></button>
     </nav>

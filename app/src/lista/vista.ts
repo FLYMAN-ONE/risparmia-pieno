@@ -98,6 +98,13 @@ export interface OpzioniVista {
   navigazione: { app: AppMappe; conNota: boolean };
   /** il distributore aperto, se c'è (uno alla volta) */
   aperto?: number;
+  /** il comune cercato: le distanze partono da lì, non dalla posizione */
+  daComune?: string;
+}
+
+/** "entro 5 km" oppure "entro 5 km da Gallarate" */
+function entro(opzioni: OpzioniVista): string {
+  return `entro ${String(opzioni.raggioKm)} km${opzioni.daComune ? ` da ${esc(opzioni.daComune)}` : ''}`;
 }
 
 export function disegnaLista(lista: Lista, opzioni: OpzioniVista): string {
@@ -106,7 +113,7 @@ export function disegnaLista(lista: Lista, opzioni: OpzioniVista): string {
     // Testo del passo 11, con il bottone per allargare al raggio successivo (se c'è)
     const piuLargo = RAGGI_KM.find((r) => r > opzioni.raggioKm);
     return `<div class="messaggio" role="status">${icona('cerca')}<div>
-      <p>Nessun distributore entro ${String(opzioni.raggioKm)} km.</p>
+      <p>Nessun distributore ${entro(opzioni)}.</p>
       ${piuLargo ? `<button type="button" class="bottone" data-allarga="${String(piuLargo)}">Allarga a ${String(piuLargo)} km</button>` : ''}
       </div></div>`;
   }
@@ -115,7 +122,7 @@ export function disegnaLista(lista: Lista, opzioni: OpzioniVista): string {
   return `<section class="lista" aria-label="Distributori">
     ${eroe(migliore, media, unitaDi(opzioni.carburante), opzioni)}
     <div class="lista-testa">
-      <p>${String(quanti)} ${quanti === 1 ? 'distributore' : 'distributori'} entro ${String(opzioni.raggioKm)} km</p>
+      <p>${String(quanti)} ${quanti === 1 ? 'distributore' : 'distributori'} ${entro(opzioni)}</p>
       <button type="button" class="ordina" data-ordina aria-label="Ordina per ${opzioni.ordine === 'prezzo' ? 'distanza' : 'prezzo'}">
         ${icona('ordina')}${opzioni.ordine === 'prezzo' ? 'Per prezzo' : 'Per distanza'}
       </button>

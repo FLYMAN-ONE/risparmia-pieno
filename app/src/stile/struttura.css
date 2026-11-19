@@ -37,3 +37,37 @@ body { display: flex; flex-direction: column; }
 @media (prefers-reduced-motion: reduce) {
   [data-intorno][aria-busy='true'] svg { animation: none; opacity: 0.35; }
 }
+
+/* ——— Ricerca del comune (decisione del 19/11/2026): lente in basso, campo in alto ——— */
+.barra-bassa .cerca-comune { flex: none; width: calc(var(--tocco-min) + var(--s-2)); padding: 0; }
+.ricerca[hidden] { display: none; }
+.ricerca { flex-basis: 100%; display: flex; align-items: center; gap: var(--s-2); }
+.campo-ricerca {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--s-2);
+  min-height: var(--tocco-min); padding: 0 var(--s-3); border-radius: var(--raggio-pillola);
+  background: var(--sfondo); box-shadow: inset 0 0 0 1px var(--linea); color: var(--testo-2);
+}
+.campo-ricerca:focus-within { box-shadow: inset 0 0 0 2px var(--azione-testo); }
+.campo-ricerca svg { width: 20px; height: 20px; flex: none; }
+.campo-ricerca input {
+  flex: 1; min-width: 0; border: 0; background: none; color: var(--testo); outline: none;
+  font: inherit; font-size: max(16px, var(--t-normale)); /* sotto i 16 px l'iPhone ingrandisce la pagina */
+}
+.campo-ricerca input::placeholder { color: var(--testo-2); }
+.annulla-ricerca {
+  appearance: none; border: 0; background: none; font: inherit; font-weight: var(--peso-medio); color: var(--azione-testo);
+  min-height: var(--tocco-min); padding: 0 var(--s-1); cursor: pointer; touch-action: manipulation;
+}
+/* Mentre si cerca, i filtri lasciano il posto al campo */
+.barra-alta.cerca .filtri, .barra-alta.cerca .raggio, .barra-alta.cerca .avviso-ritardo { display: none; }
+
+.suggerimenti { list-style: none; margin: 0 calc(-1 * var(--margine)); padding: 0 var(--margine); background: var(--superficie); }
+.suggerimenti li + li { border-top: 1px solid var(--linea); }
+.suggerimento {
+  appearance: none; border: 0; background: none; font: inherit; color: var(--testo); text-align: left; cursor: pointer;
+  width: 100%; min-height: var(--tocco-min); padding: var(--s-3) 0; display: flex; align-items: center; gap: var(--s-3);
+  touch-action: manipulation;
+}
+.suggerimento svg { width: 20px; height: 20px; flex: none; color: var(--testo-2); }
+.suggerimento .nome { flex: 1; font-weight: var(--peso-medio); }
+.suggerimento .provincia { font-size: var(--t-dettaglio); color: var(--testo-2); }

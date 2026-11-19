@@ -2,6 +2,9 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Un elemento nascosto resta nascosto anche se il suo stile dice "flex" o "inline-flex" */
+[hidden] { display: none !important; }
+
 html {
   -webkit-tap-highlight-color: transparent;
   background: var(--sfondo);
