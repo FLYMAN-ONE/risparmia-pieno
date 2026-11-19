@@ -1,0 +1,13 @@
+{
+  "id": "./",
+  "name": "Risparmia Pieno",
+  "short_name": "Risparmia Pieno",
+  "description": "I distributori di carburante più economici intorno a te. Dati MIMIT, la posizione non lascia il telefono.",
+  "lang": "it",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1C2126",
+  "theme_color": "#1C2126"
+}

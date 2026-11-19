@@ -23,3 +23,19 @@ export function avvisoRitardo(dataEstrazione: string, adesso: Date): string | un
   const giorni = Math.round((oggi.getTime() - mezzogiorno(dataEstrazione, 0).getTime()) / 86_400_000);
   return `Prezzi di ${String(giorni)} giorni fa (${giornoBreve(dataEstrazione)}). L'aggiornamento di oggi non è ancora arrivato.`;
 }
+
+export interface Avviso {
+  testo: string;
+  /** senza rete (icona del wifi spento) oppure prezzi in ritardo (icona dell'orologio) */
+  offline: boolean;
+}
+
+/**
+ * L'avviso sotto i filtri. Senza rete si dice sempre, con la data dei prezzi che si stanno guardando
+ * (testo del passo 11); con la rete, solo se i prezzi sono in ritardo.
+ */
+export function avvisoPrezzi(dataEstrazione: string, adesso: Date, online: boolean): Avviso | undefined {
+  if (!online) return { testo: `Sei offline. Prezzi del ${giornoBreve(dataEstrazione)}.`, offline: true };
+  const testo = avvisoRitardo(dataEstrazione, adesso);
+  return testo ? { testo, offline: false } : undefined;
+}

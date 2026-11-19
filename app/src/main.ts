@@ -7,7 +7,8 @@ import './stile/lista.css';
 import './stile/filtri.css';
 import './stile/mappa.css';
 import { caricaPrezzi } from './dati/carica.ts';
-import { avvisoRitardo } from './dati/data.ts';
+import { avvisoPrezzi } from './dati/data.ts';
+import { cercaVersioneNuova, registraCustode } from './offline/registra.ts';
 import { icona, type NomeIcona } from './icone/icone.ts';
 import { cambioDa, disegnaFiltri, disegnaRaggio, disegnaScelte, eUnFiltro, raggioDaPosizione, raggioDaTesto } from './impostazioni/filtri.ts';
 import { apriMenu, chiudiMenu, menuAperto, preparaMenu } from './interfaccia/menu.ts';
@@ -104,11 +105,11 @@ function mostraPartenza(): void {
   else contenuto.replaceChildren(invito);
 }
 
-/** La data dei prezzi non si mostra più: compare solo l'avviso se l'aggiornamento è in ritardo. */
-function mostraAvvisoRitardo(dataEstrazione: string): void {
-  const testo = avvisoRitardo(dataEstrazione, new Date());
-  avviso.hidden = !testo;
-  avviso.innerHTML = testo ? `${icona('prezzoVecchio')}<span>${testo}</span>` : '';
+/** La data dei prezzi non si mostra più: compare solo l'avviso se si è senza rete o se l'aggiornamento è in ritardo. */
+function mostraAvviso(): void {
+  const attuale = dati && avvisoPrezzi(dati.dataEstrazione, new Date(), navigator.onLine);
+  avviso.hidden = !attuale;
+  avviso.innerHTML = attuale ? `${icona(attuale.offline ? 'offline' : 'prezzoVecchio')}<span>${attuale.testo}</span>` : '';
 }
 
 function mostraErrore(): void {
@@ -124,11 +125,50 @@ async function avvia(): Promise<void> {
     return;
   }
   dati = esito.dati;
-  mostraAvvisoRitardo(dati.dataEstrazione);
+  ultimoControllo = Date.now();
+  mostraAvviso();
   if (!formRicerca.hidden) mostraSuggerimenti(); // si stava già scrivendo il nome di un comune
   else if (posizione) mostraRisultati();
   else mostraPartenza();
 }
+
+// ——— Prezzi sempre aggiornati (fase 7) ———
+/** Quando si è chiesto l'ultima volta se ci sono prezzi nuovi */
+let ultimoControllo = 0;
+/** Tornando sull'app dopo almeno tanto tempo, si controlla di nuovo */
+const CONTROLLO_OGNI_MS = 30 * 60_000;
+
+/** Ricarica i prezzi (il custode li ha appena aggiornati, o si torna sull'app). Se non arrivano, restano quelli che ci sono. */
+async function ricaricaPrezzi(): Promise<void> {
+  if (!dati) {
+    void avvia(); // prima non erano arrivati: si riparte da capo
+    return;
+  }
+  ultimoControllo = Date.now();
+  const esito = await caricaPrezzi();
+  if (esito.tipo !== 'ok') return;
+  const cambiati = esito.dati.dataEstrazione !== dati.dataEstrazione;
+  dati = esito.dati;
+  distributoriPerComune = undefined;
+  mostraAvviso();
+  if (!cambiati) return;
+  if (!formRicerca.hidden) mostraSuggerimenti();
+  else if (centro()) mostraRisultati(true);
+}
+
+registraCustode(() => void ricaricaPrezzi());
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  mostraAvviso(); // il giorno può essere cambiato mentre l'app era in secondo piano
+  if (Date.now() - ultimoControllo < CONTROLLO_OGNI_MS) return;
+  void ricaricaPrezzi();
+  cercaVersioneNuova();
+});
+addEventListener('offline', mostraAvviso);
+addEventListener('online', () => {
+  mostraAvviso();
+  void ricaricaPrezzi();
+});
 
 // ——— Intorno a me ———
 function mostraPosizioneNonDisponibile(): void {
@@ -234,7 +274,10 @@ async function aggiornaMappa(vola = false): Promise<void> {
   const inquadra = daInquadrare;
   daInquadrare = false;
   if (!mappa) {
-    vistaMappa.insertAdjacentHTML('afterbegin', '<p class="caricamento" role="status">Carico la mappa…</p>');
+    // Senza rete la cartina non arriva (le tessere non si conservano sul telefono): lo si dice.
+    // La scritta sparisce da sola appena arriva il primo pezzo di cartina.
+    const scritta = navigator.onLine ? 'Carico la mappa…' : 'Sei offline: la cartina si vedrà quando torna la rete.';
+    vistaMappa.insertAdjacentHTML('afterbegin', `<p class="caricamento" role="status">${scritta}</p>`);
     mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => {
       const nuova = creaMappa(vistaMappa, punto, raggioKm, apriRiquadro, mappaSpostata);
       nuova.puntoBlu(tuSeiQui());

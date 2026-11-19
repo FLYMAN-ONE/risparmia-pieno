@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { avvisoRitardo, giornoBreve } from './data.ts';
+import { avvisoPrezzi, avvisoRitardo, giornoBreve } from './data.ts';
 
 describe('data dei prezzi', () => {
   it('scrive giorno e mese', () => {
@@ -26,5 +26,18 @@ describe('avvisoRitardo', () => {
 
   it('conta i giorni anche a cavallo di mese e anno', () => {
     expect(avvisoRitardo('2026-12-30', new Date(2027, 0, 2, 15))).toContain('Prezzi di 3 giorni fa (30/12)');
+  });
+});
+
+describe('avvisoPrezzi', () => {
+  const stamattina = new Date(2026, 10, 19, 9);
+  it('senza rete lo dice sempre, con la data dei prezzi', () => {
+    expect(avvisoPrezzi('2026-11-18', stamattina, false)).toEqual({ testo: 'Sei offline. Prezzi del 18/11.', offline: true });
+  });
+  it('con la rete e i prezzi in orario: nessun avviso', () => {
+    expect(avvisoPrezzi('2026-11-18', stamattina, true)).toBeUndefined();
+  });
+  it('con la rete e i prezzi in ritardo: avviso del ritardo', () => {
+    expect(avvisoPrezzi('2026-11-18', new Date(2026, 10, 20, 12), true)?.offline).toBe(false);
   });
 });
