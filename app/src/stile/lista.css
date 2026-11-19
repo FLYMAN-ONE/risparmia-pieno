@@ -53,6 +53,14 @@
 .riga .nome { font-weight: var(--peso-medio); }
 .riga .dove { font-size: var(--t-dettaglio); color: var(--testo-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .riga .km { font-size: var(--t-dettaglio); color: var(--testo-2); white-space: nowrap; }
+.naviga-icona {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: var(--tocco-min); height: var(--tocco-min); margin: calc(-1 * var(--s-2)) calc(-1 * var(--s-3)) calc(-1 * var(--s-2)) calc(-1 * var(--s-2));
+  color: var(--azione-testo); border-radius: var(--raggio-bottone); touch-action: manipulation;
+  transition: transform var(--durata-tocco) var(--curva-tocco);
+}
+.naviga-icona:active { transform: scale(var(--scala-tocco)); }
+.naviga-icona svg { width: 22px; height: 22px; }
 .vecchio { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--t-dettaglio); color: var(--testo-2); white-space: nowrap; }
 .vecchio svg { width: var(--s-4); height: var(--s-4); flex: none; }
 

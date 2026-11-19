@@ -45,12 +45,20 @@ function eroe(voce: Voce, media: number, unita: string, navigazione: OpzioniVist
   </article>`;
 }
 
-function riga(voce: Voce): string {
+/** Naviga nelle righe: solo l'icona, per non appesantire la tabella dei prezzi. */
+function navigaIcona(voce: Voce, app: AppMappe): string {
+  const { lat, lon } = voce.distributore;
+  return `<a class="naviga-icona" data-naviga href="${linkNavigazione(lat, lon, app)}" target="_blank" rel="noopener noreferrer"
+      aria-label="Naviga verso ${esc(nomeDi(voce))}, ${formattaKm(voce.km)}">${icona('naviga')}</a>`;
+}
+
+function riga(voce: Voce, app: AppMappe): string {
   return `<li class="riga fascia-${voce.fascia}${voce.vecchio ? ' e-vecchio' : ''}">
     <span class="prezzo">${formattaCifre(voce.euro)}</span>
     <span class="chi"><span class="nome">${esc(nomeDi(voce))}</span>
       <span class="dove">${esc(indirizzoBreve(voce.distributore.indirizzo, voce.distributore.comune.nome))}</span></span>
     ${quandoOVecchio(voce)}
+    ${navigaIcona(voce, app)}
   </li>`;
 }
 
@@ -81,6 +89,6 @@ export function disegnaLista(lista: Lista, opzioni: OpzioniVista): string {
         ${icona('ordina')}${opzioni.ordine === 'prezzo' ? 'Per prezzo' : 'Per distanza'}
       </button>
     </div>
-    <ol class="righe">${altri.map(riga).join('')}</ol>
+    <ol class="righe">${altri.map((v) => riga(v, opzioni.navigazione.app)).join('')}</ol>
   </section>`;
 }

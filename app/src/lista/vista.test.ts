@@ -54,9 +54,14 @@ describe('disegnaLista', () => {
 
   it('il più conveniente ha il tasto Naviga, che si apre a parte e senza referrer', () => {
     const html = disegnaLista(lista, { ...opzioni, voci: lista.voci });
-    expect(html.match(/data-naviga/g)).toHaveLength(1);
-    expect(html).toContain('href="https://maps.apple.com/?daddr=');
+    expect(html).toMatch(/class="bottone secondario naviga" data-naviga href="https:\/\/maps\.apple\.com\/\?daddr=/);
     expect(html).toContain('rel="noopener noreferrer"');
+  });
+
+  it('ogni riga ha il suo Naviga, che dice a VoiceOver dove porta', () => {
+    const html = disegnaLista(lista, { ...opzioni, voci: lista.voci });
+    expect(html.match(/data-naviga/g)).toHaveLength(2);
+    expect(html).toMatch(/class="naviga-icona"[^>]*rel="noopener noreferrer"\s+aria-label="Naviga verso [^"]+, [\d,]+ km"/);
   });
 
   it('la nota su Naviga compare solo finché non è stato usato', () => {
