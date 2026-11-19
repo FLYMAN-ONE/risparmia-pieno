@@ -7,14 +7,14 @@ export default defineConfig({
   base: './',
   plugins: [
     {
-      // In anteprima, "/campionario" senza la barra finale porta al campionario
-      // invece che alla pagina principale.
-      name: 'campionario-senza-barra',
+      // In anteprima, "/campionario" e "/sistema" senza la barra finale portano
+      // alla loro pagina invece che alla pagina principale.
+      name: 'pagine-di-prova-senza-barra',
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
-          if (req.url === '/campionario') {
+          if (req.url === '/campionario' || req.url === '/sistema') {
             res.statusCode = 301;
-            res.setHeader('Location', '/campionario/');
+            res.setHeader('Location', `${req.url}/`);
             res.end();
             return;
           }

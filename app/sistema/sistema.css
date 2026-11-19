@@ -1,0 +1,103 @@
+/* Stile della sola pagina "sistema di design". Usa esclusivamente i token. */
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--sfondo);
+  color: var(--testo);
+  font-family: var(--font-testo);
+  font-weight: var(--peso-normale);
+  font-size: var(--t-normale);
+  line-height: var(--interlinea);
+}
+main {
+  max-width: var(--larghezza-max);
+  margin: 0 auto;
+  padding: calc(var(--s-4) + env(safe-area-inset-top, 0px)) var(--margine) calc(var(--s-8) + env(safe-area-inset-bottom, 0px));
+}
+h1 { font-size: var(--t-lista); line-height: 1.1; margin: 0 0 var(--s-1); }
+h2 { font-size: var(--t-normale); font-weight: var(--peso-medio); margin: var(--s-8) 0 var(--s-3); }
+h3 { font-size: var(--t-dettaglio); font-weight: var(--peso-medio); color: var(--testo-2); margin: 0 0 var(--s-2); }
+.nota { color: var(--testo-2); font-size: var(--t-dettaglio); margin: 0; }
+:focus-visible { outline: var(--focus); outline-offset: var(--focus-distanza); }
+
+/* Due temi affiancati (uno sotto l'altro sul telefono) */
+.temi { display: grid; gap: var(--s-3); }
+@media (min-width: 600px) { .temi { grid-template-columns: 1fr 1fr; } }
+.tema { background: var(--sfondo); color: var(--testo); padding: var(--s-4); border-radius: var(--raggio-bottone); box-shadow: inset 0 0 0 1px var(--linea); }
+
+/* Colori */
+.colori { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+.colori li { display: flex; gap: var(--s-3); align-items: center; font-size: var(--t-dettaglio); }
+.campione { width: var(--tocco-min); height: var(--tocco-min); flex: none; border-radius: var(--raggio-etichetta); box-shadow: inset 0 0 0 1px var(--linea); }
+.colori b { font-weight: var(--peso-medio); display: block; }
+.colori code { color: var(--testo-2); font-size: var(--t-minimo); }
+.voto { margin-left: auto; text-align: right; white-space: nowrap; color: var(--testo-2); }
+.voto.ko { color: var(--caro); font-weight: var(--peso-medio); }
+
+/* Prezzi, come appariranno nell'app */
+.prezzo { font-family: var(--font-prezzo); font-weight: var(--peso-prezzo); font-variant-numeric: tabular-nums; color: var(--cifre); line-height: 1; }
+.prezzo .unita { font-family: var(--font-testo); font-weight: var(--peso-normale); font-size: 0.5em; color: var(--testo-2); }
+.eroe { background: var(--superficie); padding: var(--s-4); }
+.eroe .etichetta { font-size: var(--t-dettaglio); color: var(--conveniente); font-weight: var(--peso-medio); }
+.eroe .prezzo { font-size: var(--t-eroe); display: block; margin: var(--s-1) 0; }
+.eroe .chi { font-weight: var(--peso-medio); }
+.eroe .delta { font-size: var(--t-dettaglio); color: var(--testo-2); }
+.eroe .delta b { color: var(--conveniente); font-weight: var(--peso-medio); }
+.righe { background: var(--superficie); padding: 0 var(--s-4); }
+.riga { display: flex; align-items: baseline; gap: var(--s-3); padding: var(--s-3) 0; border-top: 1px solid var(--linea); min-height: var(--tocco-min); }
+.riga .prezzo { font-size: var(--t-lista); min-width: 4.2ch; }
+.riga .chi { flex: 1; font-weight: var(--peso-medio); }
+.riga .km, .riga .vecchio { font-size: var(--t-dettaglio); color: var(--testo-2); }
+.riga .vecchio { display: inline-flex; gap: var(--s-1); align-items: center; }
+.riga .vecchio svg { width: var(--s-4); height: var(--s-4); }
+.conveniente .prezzo { color: var(--conveniente); }
+.media .prezzo { color: var(--media); }
+.caro .prezzo { color: var(--caro); }
+.e-vecchio .prezzo { opacity: var(--opacita-vecchio); }
+
+/* Bottoni */
+.bottoni { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-4); }
+.bottone {
+  appearance: none; border: 0; font: inherit; font-weight: var(--peso-medio); cursor: pointer;
+  min-height: var(--tocco-min); padding: 0 var(--s-4); border-radius: var(--raggio-bottone);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  background: var(--azione); color: var(--su-azione); box-shadow: inset 0 0 0 1.5px var(--bordo-azione);
+  touch-action: manipulation;
+}
+.bottone.secondario { background: transparent; color: var(--azione-testo); box-shadow: inset 0 0 0 1.5px var(--azione-testo); }
+.bottone svg { width: 24px; height: 24px; }
+
+/* Scala tipografica */
+.scala { background: var(--superficie); padding: 0 var(--s-4); }
+.scala > div { display: grid; grid-template-columns: 7rem 1fr; gap: var(--s-3); align-items: baseline; padding: var(--s-3) 0; border-top: 1px solid var(--linea); }
+.scala > div:first-child { border-top: 0; }
+.scala .cosa { font-size: var(--t-minimo); color: var(--testo-2); }
+
+/* Spazi, raggi, ombra */
+.spazi { background: var(--superficie); padding: var(--s-4); display: grid; gap: var(--s-2); font-size: var(--t-dettaglio); }
+.spazi div { display: flex; gap: var(--s-3); align-items: center; }
+.spazi span:first-child { width: 7rem; color: var(--testo-2); }
+.barra { height: var(--s-4); background: var(--azione); }
+.forme { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--s-3); }
+.forma { background: var(--superficie); min-height: 96px; padding: var(--s-3); font-size: var(--t-dettaglio); color: var(--testo-2); box-shadow: inset 0 0 0 1px var(--linea); }
+
+/* Icone */
+.icone { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: var(--s-2); }
+.icone div { background: var(--superficie); padding: var(--s-3) var(--s-2); display: flex; flex-direction: column; align-items: center; gap: var(--s-1); font-size: var(--t-minimo); color: var(--testo-2); text-align: center; }
+.icone svg { width: 28px; height: 28px; color: var(--testo); }
+
+/* Movimento */
+.pista { background: var(--superficie); height: 120px; position: relative; overflow: hidden; border-radius: var(--raggio-bottone); }
+.foglio {
+  position: absolute; left: var(--s-4); right: var(--s-4); bottom: 0; height: 80px;
+  background: var(--sfondo); border-radius: var(--raggio-pannello) var(--raggio-pannello) 0 0; box-shadow: var(--ombra-pannello);
+  transform: translateY(100%); transition: transform var(--durata-pannello) var(--curva);
+}
+.foglio.su { transform: translateY(0); }
+
+/* Elenco dei valori */
+.valori { width: 100%; border-collapse: collapse; font-size: var(--t-dettaglio); background: var(--superficie); }
+.valori td { padding: var(--s-2) var(--s-3); border-top: 1px solid var(--linea); vertical-align: top; }
+.valori td:first-child { color: var(--testo-2); white-space: nowrap; }
+.valori code { word-break: break-word; }
