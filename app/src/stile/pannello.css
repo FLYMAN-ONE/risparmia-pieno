@@ -1,0 +1,77 @@
+/* Pannello dal basso (passi 8 e 9). Usa solo i token. */
+
+.pannello {
+  /* in basso, largo quanto la pagina, sopra tutto */
+  position: fixed; inset: auto 0 0 0; margin: 0 auto;
+  width: 100%; max-width: var(--larghezza-max); max-height: 85dvh;
+  padding: 0; border: 0; overflow: auto; overscroll-behavior: contain;
+  background: var(--superficie); color: var(--testo);
+  border-radius: var(--raggio-pannello) var(--raggio-pannello) 0 0;
+  box-shadow: var(--ombra-pannello);
+
+  /* parte da sotto lo schermo; scende più in fretta di come sale */
+  transform: translateY(100%);
+  transition: transform var(--durata-chiusura) var(--curva);
+}
+.pannello.aperto {
+  transform: translateY(0);
+  transition-duration: var(--durata-pannello);
+}
+
+/* Velo scuro dietro: il valore di riserva serve ai browser in cui ::backdrop non vede i token */
+.pannello::backdrop {
+  background: var(--velo, rgb(0 0 0 / 0.35));
+  opacity: 0;
+  transition: opacity var(--durata-chiusura, 200ms) ease;
+}
+.pannello.aperto::backdrop { opacity: 1; transition-duration: var(--durata-pannello, 250ms); }
+
+/* "Riduci movimento": niente scorrimento, solo una dissolvenza breve */
+@media (prefers-reduced-motion: reduce) {
+  .pannello { transform: none; opacity: 0; transition: opacity 150ms ease; }
+  .pannello.aperto { opacity: 1; }
+}
+
+.pannello-contenuto {
+  position: relative;
+  padding: var(--s-2) var(--margine) calc(var(--s-4) + env(safe-area-inset-bottom, 0px));
+}
+.maniglia {
+  width: 36px; height: 5px; margin: 0 auto var(--s-2);
+  border-radius: var(--raggio-pillola); background: var(--linea);
+}
+.pannello h2 { font-size: var(--t-normale); font-weight: var(--peso-medio); margin: var(--s-2) var(--tocco-min) var(--s-3) 0; }
+.pannello .chiudi {
+  position: absolute; top: var(--s-2); right: var(--s-2);
+  width: var(--tocco-min); height: var(--tocco-min);
+  display: grid; place-items: center; border: 0; border-radius: var(--raggio-pillola);
+  background: none; color: var(--testo-2); cursor: pointer;
+}
+.pannello .chiudi svg { width: 24px; height: 24px; }
+
+/* ——— Righe di scelta: grandi, comode col pollice ——— */
+.scelte-pannello { display: flex; flex-direction: column; margin: 0 calc(-1 * var(--s-2)); }
+.scelta {
+  appearance: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer;
+  display: flex; align-items: center; gap: var(--s-3);
+  min-height: calc(var(--tocco-min) + var(--s-2)); padding: var(--s-2) var(--s-3);
+  border-radius: var(--raggio-bottone); background: transparent;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  transition: background-color var(--durata-tocco) ease, transform var(--durata-tocco) var(--curva-tocco);
+}
+.scelta:active { background: var(--linea); transform: scale(var(--scala-tocco)); }
+.scelta .testo { flex: 1; display: flex; flex-direction: column; }
+.scelta .nota { font-size: var(--t-dettaglio); color: var(--testo-2); }
+.scelta[aria-checked='true'] { font-weight: var(--peso-medio); }
+
+/* Indicatore: cerchio vuoto; sulla scelta attuale si riempie di ambra */
+.scelta .indicatore {
+  width: 24px; height: 24px; flex: none; border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--testo-2);
+  transition: box-shadow var(--durata-tocco) var(--curva-tocco), background-color var(--durata-tocco) ease;
+}
+.scelta[aria-checked='true'] .indicatore {
+  background: var(--azione);
+  /* anello, spazio, punto ambra: si vede bene sia in chiaro sia in scuro */
+  box-shadow: inset 0 0 0 2px var(--azione-testo), inset 0 0 0 6px var(--superficie);
+}

@@ -4,10 +4,12 @@ import './stile/token.css';
 import './stile/base.css';
 import './stile/struttura.css';
 import './stile/lista.css';
+import './stile/pannello.css';
 import { caricaPrezzi } from './dati/carica.ts';
 import { testoDataPrezzi } from './dati/data.ts';
 import { icona, type NomeIcona } from './icone/icone.ts';
-import { cambioDa, disegnaFiltri } from './impostazioni/filtri.ts';
+import { cambioDa, disegnaFiltri, disegnaScelte, eUnFiltro, FILTRI } from './impostazioni/filtri.ts';
+import { apriPannello, chiudiPannello, preparaPannello } from './interfaccia/pannello.ts';
 import { cambiaCarburante, filtriDa, leggiPreferenze, salvaPreferenze, type Filtri, type Preferenze } from './impostazioni/preferenze.ts';
 import { carburanteToccato, disegnaSceltaCarburante } from './impostazioni/scelta-carburante.ts';
 import { ordina, preparaLista, type Ordine } from './lista/lista.ts';
@@ -153,20 +155,47 @@ contenuto.addEventListener('click', (evento) => {
   }
 });
 
-zonaFiltri.addEventListener('change', (evento) => {
-  const cambio = cambioDa(evento.target as HTMLSelectElement);
-  if (!cambio) return;
+// Tocco su una pillola: sale il pannello con le scelte di quel filtro
+zonaFiltri.addEventListener('click', (evento) => {
+  const pillola = (evento.target as Element).closest<HTMLElement>('[data-apri-filtro]');
+  const nome = pillola?.dataset['apriFiltro'];
+  const attuali = filtri();
+  if (!pillola || !eUnFiltro(nome) || !attuali) return;
+  pillola.setAttribute('aria-expanded', 'true');
+  apriPannello({
+    titolo: FILTRI[nome].titolo,
+    corpo: disegnaScelte(nome, attuali),
+    alTocco: scegliFiltro,
+    allaChiusura: () => {
+      // il fuoco torna sulla pillola (un bottone: non si riapre nulla)
+      const nuova = zonaFiltri.querySelector<HTMLElement>(`[data-apri-filtro="${nome}"]`);
+      nuova?.removeAttribute('aria-expanded');
+      nuova?.focus({ preventScroll: true });
+    },
+  });
+});
+
+/** Tocco su una scelta nel pannello: si segna subito, la lista si aggiorna, il pannello scende. */
+function scegliFiltro(bersaglio: Element): void {
+  const scelta = bersaglio.closest<HTMLElement>('[data-filtro]');
+  const cambio = cambioDa(scelta?.dataset['filtro'], scelta?.dataset['valore']);
+  if (!scelta || !cambio) return;
+  for (const altra of scelta.parentElement!.querySelectorAll('[aria-checked]')) {
+    altra.setAttribute('aria-checked', String(altra === scelta));
+  }
   preferenze =
     cambio.filtro === 'carburante'
       ? cambiaCarburante(preferenze, cambio.valore) // self/servito torna quello adatto al nuovo carburante
       : { ...preferenze, [cambio.filtro]: cambio.valore };
   salvaPreferenze(preferenze);
   disegnaBarraFiltri();
-  zonaFiltri.querySelector<HTMLElement>(`[data-filtro="${cambio.filtro}"]`)?.focus();
   mostraRisultati(true);
-});
+  // una brevissima pausa per vedere la scelta segnata, poi il pannello scende
+  window.setTimeout(chiudiPannello, 120);
+}
 
 disegnaIcone();
+preparaPannello();
 disegnaBarraFiltri();
 coloreBarraDiStato();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', coloreBarraDiStato);

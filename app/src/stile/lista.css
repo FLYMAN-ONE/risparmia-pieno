@@ -32,7 +32,9 @@
   min-height: var(--tocco-min); padding: 0 var(--s-2); margin-right: calc(-1 * var(--s-2));
   display: inline-flex; align-items: center; gap: var(--s-1); cursor: pointer; border-radius: var(--raggio-bottone);
   touch-action: manipulation; white-space: nowrap;
+  transition: transform var(--durata-tocco) var(--curva-tocco);
 }
+.ordina:active { transform: scale(var(--scala-tocco)); }
 .ordina svg { width: 20px; height: 20px; }
 
 /* ——— Righe: una tabella di prezzi, non carte ——— */

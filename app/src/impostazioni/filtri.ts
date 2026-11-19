@@ -1,33 +1,68 @@
 // Filtri nella barra in alto (passo 2, layout A): carburante, self/servito, raggio.
-// Sono selettori nativi: sul telefono si apre la rotella (iPhone) o il menu (Android).
+// Ogni filtro è una pillola; toccandola sale dal basso il pannello con le scelte.
 import { NOME_CATEGORIA } from '../../../condiviso/carburanti.ts';
 import { icona } from '../icone/icone.ts';
 import type { Modalita } from '../lista/lista.ts';
 import { RAGGI_KM, type RaggioKm } from '../vicini/vicini.ts';
 import { CARBURANTI_SCELTI, MODALITA, type CarburanteScelto, type Filtri } from './preferenze.ts';
 
+export type NomeFiltro = keyof Filtri;
+
 const NOME_MODALITA: Record<Modalita, string> = { self: 'Self', servito: 'Servito', tutte: 'Self e servito' };
 
-function selettore(nome: string, etichetta: string, opzioni: [string, string][], scelto: string): string {
-  // La pillola mostra la scelta attuale ed è larga quanto lei; il selettore vero, invisibile,
-  // le sta sopra e riceve il tocco (così la pillola non si allarga alla voce più lunga).
-  const testoScelto = opzioni.find(([valore]) => valore === scelto)?.[1] ?? '';
-  return `<label class="filtro">
-    <span class="solo-lettori">${etichetta}</span>
-    <span class="valore" aria-hidden="true">${testoScelto}</span>
-    <select data-filtro="${nome}">${opzioni
-      .map(([valore, testo]) => `<option value="${valore}"${valore === scelto ? ' selected' : ''}>${testo}</option>`)
-      .join('')}</select>
-    ${icona('scegli')}
-  </label>`;
+interface Opzione {
+  valore: string;
+  testo: string;
+  nota?: string;
 }
 
+/** Titolo del pannello e voci di ogni filtro. */
+export const FILTRI: Record<NomeFiltro, { titolo: string; opzioni: Opzione[] }> = {
+  carburante: {
+    titolo: 'Carburante',
+    opzioni: CARBURANTI_SCELTI.map((c) => ({ valore: c, testo: NOME_CATEGORIA[c] })),
+  },
+  modalita: {
+    titolo: 'Self o servito',
+    opzioni: MODALITA.map((m) => ({
+      valore: m,
+      testo: NOME_MODALITA[m],
+      ...(m === 'tutte' ? { nota: 'Il prezzo più basso tra i due' } : {}),
+    })),
+  },
+  raggioKm: {
+    titolo: 'Raggio',
+    opzioni: RAGGI_KM.map((r) => ({ valore: String(r), testo: `${String(r)} km` })),
+  },
+};
+
+const ORDINE: NomeFiltro[] = ['carburante', 'modalita', 'raggioKm'];
+
+function testoScelto(nome: NomeFiltro, filtri: Filtri): string {
+  return FILTRI[nome].opzioni.find((o) => o.valore === String(filtri[nome]))?.testo ?? '';
+}
+
+/** Le tre pillole. Il nome del filtro è letto da VoiceOver e TalkBack prima della scelta. */
 export function disegnaFiltri(filtri: Filtri): string {
-  return [
-    selettore('carburante', 'Carburante', CARBURANTI_SCELTI.map((c) => [c, NOME_CATEGORIA[c]]), filtri.carburante),
-    selettore('modalita', 'Self o servito', MODALITA.map((m) => [m, NOME_MODALITA[m]]), filtri.modalita),
-    selettore('raggioKm', 'Raggio', RAGGI_KM.map((r) => [String(r), `${String(r)} km`]), String(filtri.raggioKm)),
-  ].join('');
+  return ORDINE.map(
+    (nome) => `<button type="button" class="filtro" data-apri-filtro="${nome}" aria-haspopup="dialog">
+      <span class="solo-lettori">${FILTRI[nome].titolo}: </span><span class="valore">${testoScelto(nome, filtri)}</span>${icona('scegli')}
+    </button>`,
+  ).join('');
+}
+
+/** Il contenuto del pannello: una riga grande per ogni scelta, con l'indicatore su quella attuale. */
+export function disegnaScelte(nome: NomeFiltro, filtri: Filtri): string {
+  const attuale = String(filtri[nome]);
+  return `<div class="scelte-pannello" role="radiogroup" aria-labelledby="titolo-pannello">${FILTRI[nome].opzioni
+    .map(
+      ({ valore, testo, nota }) => `<button type="button" role="radio" class="scelta" data-filtro="${nome}" data-valore="${valore}"
+        aria-checked="${String(valore === attuale)}">
+        <span class="testo">${testo}${nota ? `<span class="nota">${nota}</span>` : ''}</span>
+        <span class="indicatore" aria-hidden="true"></span>
+      </button>`,
+    )
+    .join('')}</div>`;
 }
 
 /** Il filtro cambiato, già controllato: solo valori previsti. */
@@ -36,22 +71,25 @@ export type Cambio =
   | { filtro: 'modalita'; valore: Modalita }
   | { filtro: 'raggioKm'; valore: RaggioKm };
 
-export function cambioDa(select: HTMLSelectElement): Cambio | undefined {
-  const { value } = select;
-  switch (select.dataset['filtro']) {
+export function cambioDa(filtro: string | undefined, valore: string | undefined): Cambio | undefined {
+  switch (filtro) {
     case 'carburante': {
-      const valore = CARBURANTI_SCELTI.find((c) => c === value);
-      return valore && { filtro: 'carburante', valore };
+      const v = CARBURANTI_SCELTI.find((c) => c === valore);
+      return v && { filtro, valore: v };
     }
     case 'modalita': {
-      const valore = MODALITA.find((m) => m === value);
-      return valore && { filtro: 'modalita', valore };
+      const v = MODALITA.find((m) => m === valore);
+      return v && { filtro, valore: v };
     }
     case 'raggioKm': {
-      const valore = RAGGI_KM.find((r) => String(r) === value);
-      return valore && { filtro: 'raggioKm', valore };
+      const v = RAGGI_KM.find((r) => String(r) === valore);
+      return v && { filtro, valore: v };
     }
     default:
       return undefined;
   }
+}
+
+export function eUnFiltro(nome: string | undefined): nome is NomeFiltro {
+  return ORDINE.includes(nome as NomeFiltro);
 }

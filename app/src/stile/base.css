@@ -31,6 +31,9 @@ p { margin: 0; }
   background: var(--azione); color: var(--su-azione); box-shadow: inset 0 0 0 1.5px var(--bordo-azione);
   touch-action: manipulation; user-select: none; -webkit-user-select: none;
 }
+/* Premuto, il bottone si abbassa appena: l'app ha sentito il tocco */
+.bottone { transition: transform var(--durata-tocco) var(--curva-tocco); }
+.bottone:active { transform: scale(var(--scala-tocco)); }
 .bottone.secondario { background: transparent; color: var(--azione-testo); box-shadow: inset 0 0 0 1.5px var(--azione-testo); }
 .bottone.grande { min-height: calc(var(--tocco-min) + var(--s-2)); font-size: var(--t-normale); }
 .bottone svg { width: 24px; height: 24px; flex: none; }

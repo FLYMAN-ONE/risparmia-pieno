@@ -110,6 +110,10 @@
   --durata-pannello: 250ms;
   --durata-lista: 180ms;
   --curva: cubic-bezier(0.32, 0.72, 0, 1); /* parte veloce e si posa dolcemente */
+  --durata-chiusura: 200ms;    /* il pannello scende più in fretta di come sale */
+  --durata-tocco: 160ms;       /* risposta alla pressione di un bottone */
+  --curva-tocco: cubic-bezier(0.23, 1, 0.32, 1); /* risposta immediata, poi si posa */
+  --scala-tocco: 0.97;         /* il bottone premuto si abbassa appena */
 
   /* Accessibilità */
   --focus: 3px solid var(--azione-testo);
@@ -129,6 +133,8 @@
   :root {
     --durata-pannello: 0ms;
     --durata-lista: 0ms;
+    --durata-chiusura: 0ms;
+    --scala-tocco: 1;
   }
 }
 
