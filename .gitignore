@@ -10,6 +10,9 @@ node_modules/
 # File generati dalla compilazione dell'app
 dist/
 
+# Copia locale del file prezzi per provare l'app sul Mac (npm run dati)
+app/public/dati/
+
 # File di sistema del Mac
 .DS_Store
 

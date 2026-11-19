@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "cucina": "node cucina/src/cucina.ts",
-    "campionario": "vite --host"
+    "campionario": "vite --host",
+    "dati": "curl -sSf --create-dirs -o app/public/dati/prezzi.json https://flyman-one.github.io/risparmia-pieno/dati/prezzi.json"
   },
   "devDependencies": {
     "@types/node": "26.6.6",

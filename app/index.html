@@ -2,16 +2,28 @@
 <html lang="it">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="referrer" content="no-referrer" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="" />
+    <meta name="description" content="I distributori di carburante più economici intorno a te. Dati MIMIT, la posizione non lascia il telefono." />
     <title>Risparmia Pieno</title>
   </head>
   <body>
-    <main>
-      <h1>Risparmia Pieno</h1>
-      <p>Cantiere aperto. L'app arriva nelle prossime fasi.</p>
-      <p id="esempio"></p>
+    <header class="barra-alta">
+      <p class="data-prezzi" data-data-prezzi aria-live="polite">Carico i prezzi…</p>
+    </header>
+
+    <main class="contenuto" data-contenuto>
+      <p class="invito">Tocca «Intorno a me» per vedere i distributori più convenienti vicino a te.</p>
     </main>
-    <script type="module" src="/src/main.ts"></script>
+
+    <nav class="barra-bassa" aria-label="Comandi">
+      <button type="button" class="bottone grande" data-intorno>
+        <span data-icona="intornoAMe"></span>Intorno a me
+      </button>
+    </nav>
+
+    <script type="module" src="./src/main.ts"></script>
   </body>
 </html>

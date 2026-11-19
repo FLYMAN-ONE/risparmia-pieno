@@ -1,0 +1,26 @@
+/* Struttura della schermata principale (passo 2, layout A):
+   barra in alto con la data, contenuto al centro, comandi in basso nella zona del pollice. */
+
+body { display: flex; flex-direction: column; }
+
+.barra-alta {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--superficie); border-bottom: 1px solid var(--linea);
+  padding: calc(var(--s-3) + env(safe-area-inset-top, 0px)) var(--margine) var(--s-3);
+}
+.data-prezzi { font-size: var(--t-dettaglio); color: var(--testo-2); text-align: right; }
+
+.contenuto {
+  flex: 1;
+  width: 100%; max-width: var(--larghezza-max); margin: 0 auto;
+  padding: var(--s-4) var(--margine);
+}
+.invito { color: var(--testo-2); padding: var(--s-6) 0; text-align: center; }
+
+.barra-bassa {
+  position: sticky; bottom: 0; z-index: 10;
+  display: flex; gap: var(--s-2);
+  background: var(--superficie); border-top: 1px solid var(--linea);
+  padding: var(--s-3) var(--margine) calc(var(--s-3) + env(safe-area-inset-bottom, 0px));
+}
+.barra-bassa .bottone { flex: 1; }
