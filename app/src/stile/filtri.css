@@ -1,0 +1,94 @@
+/* Filtri nella barra in alto: pillole con menu compatto e slider del raggio. Usa solo i token. */
+
+/* ——— Pillole ——— */
+.filtri { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.filtri[hidden], .raggio[hidden] { display: none; }
+.filtro-gruppo { position: relative; }
+.filtro {
+  appearance: none; border: 0; font: inherit; color: var(--testo); cursor: pointer;
+  display: inline-flex; align-items: center; gap: var(--s-1);
+  min-height: var(--tocco-min); padding: 0 var(--s-2) 0 var(--s-3);
+  border-radius: var(--raggio-pillola); background: var(--sfondo); box-shadow: inset 0 0 0 1px var(--linea);
+  font-weight: var(--peso-medio); white-space: nowrap;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  transition: transform var(--durata-tocco) var(--curva-tocco);
+}
+.filtro:active { transform: scale(var(--scala-tocco)); }
+.filtro svg { width: 18px; height: 18px; color: var(--testo-2); flex: none; transition: transform var(--durata-menu) var(--curva-tocco); }
+.filtro[aria-expanded='true'] svg { transform: rotate(180deg); }
+
+/* ——— Menu sotto la pillola: cresce dalla pillola, niente velo ——— */
+.menu {
+  position: absolute; top: calc(100% + var(--s-1)); left: 0; z-index: 20;
+  min-width: 13rem; padding: var(--s-1);
+  background: var(--superficie); color: var(--testo);
+  border-radius: var(--raggio-bottone); box-shadow: var(--ombra-menu);
+  transform-origin: top left;
+  opacity: 0; transform: scale(0.96) translateY(-4px);
+  transition: opacity var(--durata-menu-chiusura) ease, transform var(--durata-menu-chiusura) var(--curva-tocco);
+}
+.menu.a-destra { left: auto; right: 0; transform-origin: top right; }
+.menu.aperto {
+  opacity: 1; transform: none;
+  transition-duration: var(--durata-menu);
+}
+.menu.chiude { pointer-events: none; }
+@media (prefers-reduced-motion: reduce) {
+  .menu, .menu.aperto { transform: none; }
+}
+
+.scelte-menu { display: flex; flex-direction: column; }
+.scelta {
+  appearance: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer;
+  display: flex; align-items: center; gap: var(--s-3);
+  min-height: var(--tocco-min); padding: var(--s-1) var(--s-3);
+  border-radius: var(--raggio-etichetta); background: transparent;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  transition: background-color var(--durata-tocco) ease;
+}
+.scelta:active { background: var(--linea); }
+@media (hover: hover) and (pointer: fine) {
+  .scelta:hover { background: var(--linea); }
+}
+.scelta .testo { flex: 1; display: flex; flex-direction: column; line-height: 1.25; }
+.scelta .nota { font-size: var(--t-dettaglio); color: var(--testo-2); }
+.scelta[aria-checked='true'] { font-weight: var(--peso-medio); }
+/* Sulla scelta attuale, un punto ambra; le altre non hanno segni: più pulito */
+.scelta .indicatore { width: 10px; height: 10px; flex: none; border-radius: 50%; }
+.scelta[aria-checked='true'] .indicatore { background: var(--azione); box-shadow: 0 0 0 1px var(--bordo-azione); }
+
+/* ——— Slider del raggio: tre posizioni, 5 · 10 · 15 km ——— */
+.raggio {
+  flex-basis: 100%;
+  display: flex; align-items: center; gap: var(--s-3);
+  font-size: var(--t-dettaglio); color: var(--testo-2);
+}
+.etichetta-raggio { flex: none; align-self: flex-start; line-height: 28px; }
+.slider { --pallino: 24px; position: relative; flex: 1; height: var(--tocco-min); }
+.slider input {
+  appearance: none; -webkit-appearance: none; background: transparent; cursor: pointer;
+  position: absolute; inset: 0 0 auto; width: 100%; height: 28px; margin: 0;
+  touch-action: pan-y;
+}
+/* la linea */
+.slider input::-webkit-slider-runnable-track { height: 4px; border-radius: var(--raggio-pillola); background: var(--linea); }
+.slider input::-moz-range-track { height: 4px; border-radius: var(--raggio-pillola); background: var(--linea); }
+/* il pallino ambra */
+.slider input::-webkit-slider-thumb {
+  -webkit-appearance: none; width: var(--pallino); height: var(--pallino); margin-top: calc((4px - var(--pallino)) / 2);
+  border-radius: 50%; background: var(--azione); box-shadow: 0 0 0 1.5px var(--bordo-azione), 0 1px 3px rgb(0 0 0 / 0.25);
+}
+.slider input::-moz-range-thumb {
+  width: var(--pallino); height: var(--pallino); border: 0;
+  border-radius: 50%; background: var(--azione); box-shadow: 0 0 0 1.5px var(--bordo-azione), 0 1px 3px rgb(0 0 0 / 0.25);
+}
+.slider input:focus-visible { outline: var(--focus); outline-offset: var(--focus-distanza); border-radius: var(--raggio-pillola); }
+/* le distanze sotto, centrate su ogni posizione del pallino; si possono toccare */
+.tacche { position: absolute; inset: 22px 0 0; }
+.tacca {
+  position: absolute; top: 0; transform: translateX(-50%);
+  left: calc(var(--pallino) / 2 + (100% - var(--pallino)) * var(--i) / 2);
+  appearance: none; border: 0; background: none; font: inherit; color: var(--testo-2); cursor: pointer;
+  padding: var(--s-1) var(--s-2); white-space: nowrap; touch-action: manipulation;
+}
+.tacca[data-scelta] { color: var(--testo); font-weight: var(--peso-medio); }

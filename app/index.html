@@ -13,6 +13,7 @@
     <header class="barra-alta">
       <div class="filtri" data-filtri hidden></div>
       <p class="data-prezzi" data-data-prezzi aria-live="polite">Carico i prezzi…</p>
+      <div class="raggio" data-raggio hidden></div>
     </header>
 
     <main class="contenuto" data-contenuto>
@@ -24,15 +25,6 @@
         <span data-icona="intornoAMe"></span>Intorno a me
       </button>
     </nav>
-
-    <dialog class="pannello" data-pannello aria-labelledby="titolo-pannello">
-      <div class="pannello-contenuto">
-        <div class="maniglia" aria-hidden="true"></div>
-        <h2 id="titolo-pannello" data-pannello-titolo></h2>
-        <button type="button" class="chiudi" data-pannello-chiudi aria-label="Chiudi"><span data-icona="chiudi"></span></button>
-        <div data-pannello-corpo></div>
-      </div>
-    </dialog>
 
     <script type="module" src="./src/main.ts"></script>
   </body>

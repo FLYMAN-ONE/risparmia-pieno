@@ -105,12 +105,15 @@
   /* Ombre (passo 8): una sola vera ombra, sul pannello dal basso */
   --ombra-pannello: 0 -8px 32px rgb(0 0 0 / 0.18);
   --ombra-mappa: 0 1px 4px rgb(0 0 0 / 0.28); /* solo per staccare le etichette dalla mappa */
+  --ombra-menu: 0 8px 24px rgb(0 0 0 / 0.16), 0 0 0 1px var(--linea); /* menu sopra la lista */
 
   /* Movimento (passo 9) */
   --durata-pannello: 250ms;
   --durata-lista: 180ms;
   --curva: cubic-bezier(0.32, 0.72, 0, 1); /* parte veloce e si posa dolcemente */
   --durata-chiusura: 200ms;    /* il pannello scende più in fretta di come sale */
+  --durata-menu: 150ms;        /* menu sotto la pillola: entrata */
+  --durata-menu-chiusura: 100ms; /* uscita, più rapida */
   --durata-tocco: 160ms;       /* risposta alla pressione di un bottone */
   --curva-tocco: cubic-bezier(0.23, 1, 0.32, 1); /* risposta immediata, poi si posa */
   --scala-tocco: 0.97;         /* il bottone premuto si abbassa appena */

@@ -4,13 +4,14 @@ import './stile/token.css';
 import './stile/base.css';
 import './stile/struttura.css';
 import './stile/lista.css';
-import './stile/pannello.css';
+import './stile/filtri.css';
 import { caricaPrezzi } from './dati/carica.ts';
 import { testoDataPrezzi } from './dati/data.ts';
 import { icona, type NomeIcona } from './icone/icone.ts';
-import { cambioDa, disegnaFiltri, disegnaScelte, eUnFiltro, FILTRI } from './impostazioni/filtri.ts';
-import { apriPannello, chiudiPannello, preparaPannello } from './interfaccia/pannello.ts';
+import { cambioDa, disegnaFiltri, disegnaRaggio, disegnaScelte, eUnFiltro, raggioDaPosizione, raggioDaTesto } from './impostazioni/filtri.ts';
+import { apriMenu, chiudiMenu, menuAperto, preparaMenu } from './interfaccia/menu.ts';
 import { cambiaCarburante, filtriDa, leggiPreferenze, salvaPreferenze, type Filtri, type Preferenze } from './impostazioni/preferenze.ts';
+import { RAGGI_KM, type RaggioKm } from './vicini/vicini.ts';
 import { carburanteToccato, disegnaSceltaCarburante } from './impostazioni/scelta-carburante.ts';
 import { ordina, preparaLista, type Ordine } from './lista/lista.ts';
 import { disegnaLista } from './lista/vista.ts';
@@ -25,6 +26,7 @@ const contenuto = document.querySelector<HTMLElement>('[data-contenuto]')!;
 const invito = contenuto.querySelector<HTMLElement>('.invito')!;
 const bottoneIntorno = document.querySelector<HTMLButtonElement>('[data-intorno]')!;
 const zonaFiltri = document.querySelector<HTMLElement>('[data-filtri]')!;
+const zonaRaggio = document.querySelector<HTMLElement>('[data-raggio]')!;
 
 // ——— Stato dell'app: tutto solo in memoria, tranne le preferenze ———
 /** I prezzi caricati */
@@ -45,7 +47,9 @@ function filtri(): Filtri | undefined {
 function disegnaBarraFiltri(): void {
   const attuali = filtri();
   zonaFiltri.hidden = !attuali;
+  zonaRaggio.hidden = !attuali;
   zonaFiltri.innerHTML = attuali ? disegnaFiltri(attuali) : '';
+  zonaRaggio.innerHTML = attuali ? disegnaRaggio(attuali.raggioKm) : '';
 }
 
 function disegnaIcone(): void {
@@ -155,34 +159,25 @@ contenuto.addEventListener('click', (evento) => {
   }
 });
 
-// Tocco su una pillola: sale il pannello con le scelte di quel filtro
+// Tocco su una pillola: si apre (o si chiude) il menu sotto di lei
 zonaFiltri.addEventListener('click', (evento) => {
   const pillola = (evento.target as Element).closest<HTMLElement>('[data-apri-filtro]');
   const nome = pillola?.dataset['apriFiltro'];
   const attuali = filtri();
   if (!pillola || !eUnFiltro(nome) || !attuali) return;
-  pillola.setAttribute('aria-expanded', 'true');
-  apriPannello({
-    titolo: FILTRI[nome].titolo,
-    corpo: disegnaScelte(nome, attuali),
-    alTocco: scegliFiltro,
-    allaChiusura: () => {
-      // il fuoco torna sulla pillola (un bottone: non si riapre nulla)
-      const nuova = zonaFiltri.querySelector<HTMLElement>(`[data-apri-filtro="${nome}"]`);
-      nuova?.removeAttribute('aria-expanded');
-      nuova?.focus({ preventScroll: true });
-    },
-  });
+  if (menuAperto() === pillola) {
+    chiudiMenu();
+    return;
+  }
+  apriMenu(pillola, disegnaScelte(nome, attuali), scegliFiltro);
 });
 
-/** Tocco su una scelta nel pannello: si segna subito, la lista si aggiorna, il pannello scende. */
+/** Tocco su una scelta del menu: la lista si aggiorna e il menu si chiude. */
 function scegliFiltro(bersaglio: Element): void {
   const scelta = bersaglio.closest<HTMLElement>('[data-filtro]');
   const cambio = cambioDa(scelta?.dataset['filtro'], scelta?.dataset['valore']);
-  if (!scelta || !cambio) return;
-  for (const altra of scelta.parentElement!.querySelectorAll('[aria-checked]')) {
-    altra.setAttribute('aria-checked', String(altra === scelta));
-  }
+  if (!cambio) return;
+  chiudiMenu();
   preferenze =
     cambio.filtro === 'carburante'
       ? cambiaCarburante(preferenze, cambio.valore) // self/servito torna quello adatto al nuovo carburante
@@ -190,12 +185,38 @@ function scegliFiltro(bersaglio: Element): void {
   salvaPreferenze(preferenze);
   disegnaBarraFiltri();
   mostraRisultati(true);
-  // una brevissima pausa per vedere la scelta segnata, poi il pannello scende
-  window.setTimeout(chiudiPannello, 120);
+  // il fuoco torna sulla pillola (è un bottone: non riapre nulla), utile con tastiera e VoiceOver
+  zonaFiltri.querySelector<HTMLElement>(`[data-apri-filtro="${cambio.filtro}"]`)?.focus({ preventScroll: true });
 }
 
+// ——— Slider del raggio ———
+function cambiaRaggio(raggioKm: RaggioKm | undefined): void {
+  if (!raggioKm || raggioKm === filtri()?.raggioKm) return;
+  preferenze = { ...preferenze, raggioKm };
+  salvaPreferenze(preferenze);
+  // si aggiornano solo testi e tacche: lo slider resta lo stesso, così il dito non lo perde
+  const slider = zonaRaggio.querySelector<HTMLInputElement>('[data-slider-raggio]');
+  slider?.setAttribute('aria-valuetext', `${String(raggioKm)} km`);
+  for (const tacca of zonaRaggio.querySelectorAll<HTMLElement>('[data-raggio-km]')) {
+    tacca.toggleAttribute('data-scelta', tacca.dataset['raggioKm'] === String(raggioKm));
+  }
+  mostraRisultati(true);
+}
+
+zonaRaggio.addEventListener('input', (evento) => {
+  cambiaRaggio(raggioDaPosizione((evento.target as HTMLInputElement).value));
+});
+zonaRaggio.addEventListener('click', (evento) => {
+  const tacca = (evento.target as Element).closest<HTMLElement>('[data-raggio-km]');
+  const raggioKm = raggioDaTesto(tacca?.dataset['raggioKm']);
+  if (!tacca || !raggioKm) return;
+  const slider = zonaRaggio.querySelector<HTMLInputElement>('[data-slider-raggio]');
+  if (slider) slider.value = String(RAGGI_KM.indexOf(raggioKm));
+  cambiaRaggio(raggioKm);
+});
+
 disegnaIcone();
-preparaPannello();
+preparaMenu();
 disegnaBarraFiltri();
 coloreBarraDiStato();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', coloreBarraDiStato);

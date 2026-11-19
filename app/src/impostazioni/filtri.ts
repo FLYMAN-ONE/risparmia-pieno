@@ -36,25 +36,51 @@ export const FILTRI: Record<NomeFiltro, { titolo: string; opzioni: Opzione[] }> 
   },
 };
 
-const ORDINE: NomeFiltro[] = ['carburante', 'modalita', 'raggioKm'];
+/** I filtri con il menu sotto la pillola; il raggio ha il suo slider. */
+const PILLOLE: NomeFiltro[] = ['carburante', 'modalita'];
 
 function testoScelto(nome: NomeFiltro, filtri: Filtri): string {
   return FILTRI[nome].opzioni.find((o) => o.valore === String(filtri[nome]))?.testo ?? '';
 }
 
-/** Le tre pillole. Il nome del filtro è letto da VoiceOver e TalkBack prima della scelta. */
+/** Le pillole. Il nome del filtro è letto da VoiceOver e TalkBack prima della scelta. */
 export function disegnaFiltri(filtri: Filtri): string {
-  return ORDINE.map(
-    (nome) => `<button type="button" class="filtro" data-apri-filtro="${nome}" aria-haspopup="dialog">
+  return PILLOLE.map(
+    (nome) => `<div class="filtro-gruppo"><button type="button" class="filtro" data-apri-filtro="${nome}" aria-haspopup="true">
       <span class="solo-lettori">${FILTRI[nome].titolo}: </span><span class="valore">${testoScelto(nome, filtri)}</span>${icona('scegli')}
-    </button>`,
+    </button></div>`,
   ).join('');
 }
 
-/** Il contenuto del pannello: una riga grande per ogni scelta, con l'indicatore su quella attuale. */
+/** Slider del raggio a tre posizioni; anche le distanze sotto si possono toccare
+    (su iPhone toccare la linea di uno slider non lo sposta). */
+export function disegnaRaggio(raggioKm: RaggioKm): string {
+  const posizione = RAGGI_KM.indexOf(raggioKm);
+  return `<span class="etichetta-raggio" id="etichetta-raggio">Entro</span>
+    <div class="slider">
+      <input type="range" min="0" max="${String(RAGGI_KM.length - 1)}" step="1" value="${String(posizione)}"
+        data-slider-raggio aria-labelledby="etichetta-raggio" aria-valuetext="${String(raggioKm)} km" />
+      <div class="tacche">${RAGGI_KM.map(
+        (r, i) => `<button type="button" class="tacca" data-raggio-km="${String(r)}" tabindex="-1"
+          style="--i: ${String(i)}" aria-hidden="true"${r === raggioKm ? ' data-scelta' : ''}>${String(r)} km</button>`,
+      ).join('')}</div>
+    </div>`;
+}
+
+/** Posizione dello slider → raggio in km */
+export function raggioDaPosizione(posizione: string): RaggioKm | undefined {
+  return /^\d$/.test(posizione) ? RAGGI_KM[Number(posizione)] : undefined;
+}
+
+/** Testo di una tacca toccata → raggio in km */
+export function raggioDaTesto(km: string | undefined): RaggioKm | undefined {
+  return RAGGI_KM.find((r) => String(r) === km);
+}
+
+/** Il contenuto del menu: una riga per ogni scelta, con l'indicatore su quella attuale. */
 export function disegnaScelte(nome: NomeFiltro, filtri: Filtri): string {
   const attuale = String(filtri[nome]);
-  return `<div class="scelte-pannello" role="radiogroup" aria-labelledby="titolo-pannello">${FILTRI[nome].opzioni
+  return `<div class="scelte-menu" role="radiogroup" aria-label="${FILTRI[nome].titolo}">${FILTRI[nome].opzioni
     .map(
       ({ valore, testo, nota }) => `<button type="button" role="radio" class="scelta" data-filtro="${nome}" data-valore="${valore}"
         aria-checked="${String(valore === attuale)}">
@@ -91,5 +117,5 @@ export function cambioDa(filtro: string | undefined, valore: string | undefined)
 }
 
 export function eUnFiltro(nome: string | undefined): nome is NomeFiltro {
-  return ORDINE.includes(nome as NomeFiltro);
+  return PILLOLE.includes(nome as NomeFiltro);
 }
