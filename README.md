@@ -4,7 +4,14 @@
 
 Una web app da installare sul telefono che mostra, su mappa e in lista, i distributori di carburante più economici intorno a te o in un comune che scegli.
 
-> Progetto in sviluppo. Questa pagina si completa man mano.
+App: https://flyman-one.github.io/risparmia-pieno/
+
+## Installarla sul telefono
+
+- **iPhone:** apri l'indirizzo in **Safari** → tasto Condividi → **Aggiungi alla schermata Home**. Poi apri l'app dalla Home una volta con la rete: da lì funziona anche offline.
+- **Android:** apri l'indirizzo in **Chrome** → menu ⋮ → **Installa app** (o "Aggiungi a schermata Home").
+
+Non serve aggiornarla: le versioni nuove arrivano da sole alla riapertura.
 
 ## Come funziona
 
@@ -15,10 +22,13 @@ L'app ha due parti separate, che non si parlano mai in tempo reale:
 
 ## Privacy
 
-- La tua posizione **non lascia mai il telefono** e non viene salvata.
+- La tua posizione **non lascia mai il telefono** e non viene salvata. Lo stesso vale per il comune cercato e per il punto dove sposti la mappa.
 - Il GPS si chiede solo quando tocchi "Intorno a me".
 - Niente account, statistiche, cookie o servizi di terze parti.
-- L'unico servizio esterno è OpenFreeMap, per le tessere della mappa. La vista Lista non contatta nessuno.
+- Il file dei prezzi è uno solo, uguale per tutta Italia: scaricarlo non dice dove sei.
+- L'unico servizio esterno è OpenFreeMap, per le tessere della mappa, chiamato senza dire da quale sito arriva la richiesta. Come ogni mappa, riceve i pezzi di cartina della zona che guardi, non la tua posizione. La vista Lista non contatta nessuno.
+- Sul telefono restano solo: le tue scelte (carburante, self/servito, raggio, tema, colore della mappa), i file dell'app e l'ultimo file dei prezzi, per funzionare senza rete. Le tessere della mappa non vengono conservate dall'app.
+- La pagina contiene una "lista degli invitati" (Content Security Policy, `app/src/sicurezza/csp.ts`): il browser blocca qualunque contatto con siti diversi da OpenFreeMap. Aggiungere un sito richiede di cambiare quella lista, e un test lo segnala.
 
 ## Struttura delle cartelle
 
@@ -27,7 +37,7 @@ L'app ha due parti separate, che non si parlano mai in tempo reale:
 | `cucina/` | Lo script che prepara ogni giorno il file dei prezzi, con i suoi test |
 | `app/` | L'app per il telefono, divisa per compiti (dati, posizione, lista, mappa, ricerca, impostazioni, stile) |
 | `condiviso/` | Le regole comuni alle due parti: formato del file prezzi e categorie dei carburanti |
-| `.github/workflows/` | Le automazioni di GitHub: test e aggiornamento mattutino |
+| `.github/workflows/` | Le automazioni di GitHub: test, ricezione dei dati, pubblicazione e controllo serale |
 
 ## Comandi utili
 
@@ -49,6 +59,12 @@ Gli stessi controlli (TypeScript, test e costruzione dell'app) girano da soli su
 
 Prezzi e anagrafica dei distributori: Ministero delle Imprese e del Made in Italy (MIMIT), Osservaprezzi Carburanti, rilasciati con licenza [IODL 2.0](https://www.dati.gov.it/iodl/2.0/).
 
+## Riconoscimenti
+
+- Mappa: [OpenFreeMap](https://openfreemap.org), dati © [OpenStreetMap](https://www.openstreetmap.org/copyright), disegnata con [MapLibre GL JS](https://maplibre.org) (licenza BSD-3).
+- Carattere: Titillium Web (licenza SIL Open Font License), incluso nell'app.
+- Icone: [Lucide](https://lucide.dev) (licenza ISC), incluse nell'app.
+
 ## Cosa fare se…
 
 Questa sezione si completa durante lo sviluppo.
@@ -63,4 +79,13 @@ Questa sezione si completa durante lo sviluppo.
   3. Tempo di utilizzo → Restrizioni contenuti e privacy → Localizzazione: consentita.
 
   Se invece il messaggio arriva dopo qualche secondo, il telefono non trova la posizione: riprova all'aperto. Se la pagina è aperta dentro un'altra app (WhatsApp, Telegram…), aprila in Safari.
-- **…il sito non si apre:** _da scrivere nella fase 9._
+- **…l'app dice "Prezzi di N giorni fa":** l'aggiornamento automatico non è arrivato. Segui i primi due punti di questa lista (email "Controllo serale" o "Ricevi dati MIMIT"). Intanto l'app funziona con gli ultimi prezzi e lo dice.
+- **…l'app dice "Sei offline":** il telefono non ha rete. Lista e prezzi funzionano con l'ultimo file scaricato; la mappa torna quando torna la rete.
+- **…il sito non si apre:**
+  1. se l'app è già installata, si apre comunque con gli ultimi prezzi: il problema riguarda solo gli aggiornamenti;
+  2. controlla lo stato di GitHub su https://www.githubstatus.com (voce "Pages"): se è un guasto loro, si risolve da solo;
+  3. su GitHub, scheda **Actions**, guarda l'ultima azione "Pubblica": se è rossa, aprila e leggi l'errore; si può rilanciare con **Re-run jobs**;
+  4. in **Settings → Pages** del repository deve esserci "Your site is live". Se il sito risulta spento, la sorgente deve essere "GitHub Actions".
+- **…dopo una modifica il telefono mostra ancora la versione vecchia:** chiudi del tutto l'app (scorri via dalle app aperte) e riaprila; la versione nuova arriva da sola. Nella pagina Impostazioni e info, in fondo, c'è la data della versione. Da Safari, aggiungere `?v=` e un numero all'indirizzo scavalca la memoria del browser.
+- **…la mappa dice "Mappa non disponibile":** manca la rete, oppure l'app è rimasta aperta durante un aggiornamento. Tocca di nuovo Mappa; se non basta, chiudi e riapri l'app.
+- **…voglio aggiungere un servizio esterno (per esempio un'altra mappa):** va prima approvato (regola privacy 7). Poi si aggiunge in `app/src/sicurezza/csp.ts` e nei test `app/src/privacy.test.ts` e `app/src/sicurezza/csp.test.ts`, altrimenti il browser lo blocca.
