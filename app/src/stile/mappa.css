@@ -65,3 +65,6 @@ body.in-mappa { height: 100dvh; }
 .riquadro-azioni { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-top: var(--s-2); }
 .riquadro-azioni .apri-dettagli { margin-top: 0; }
 .riquadro-mappa .tutti-prezzi { margin-top: var(--s-3); }
+
+/* Colore della mappa "Blu scura" (19/11/2026): Fiord con i suoi colori, non attenuata */
+.vista-mappa[data-attenuata='false'] .maplibregl-canvas { filter: none; }

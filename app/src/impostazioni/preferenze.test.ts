@@ -68,6 +68,23 @@ describe('preferenze', () => {
     const memoria = memoriaFinta({ 'risparmia-pieno.preferenze': '{"carburante":"gpl","raggioKm":50}' });
     expect(leggiPreferenze(memoria)).toEqual({ carburante: 'gpl' });
   });
+
+  it('ricorda tema e colore della mappa', () => {
+    const memoria = memoriaFinta();
+    salvaPreferenze({ tema: 'chiaro', mappa: 'blu' }, memoria);
+    expect(leggiPreferenze(memoria)).toEqual({ tema: 'chiaro', mappa: 'blu' });
+  });
+
+  it('i valori di partenza (automatico, come il tema) non si salvano', () => {
+    const memoria = memoriaFinta();
+    salvaPreferenze({ carburante: 'gpl', tema: 'automatico', mappa: 'tema' }, memoria);
+    expect(memoria.dati['risparmia-pieno.preferenze']).toBe('{"carburante":"gpl"}');
+  });
+
+  it('ignora temi e mappe sconosciuti', () => {
+    const memoria = memoriaFinta({ 'risparmia-pieno.preferenze': '{"tema":"rosa","mappa":"satellite"}' });
+    expect(leggiPreferenze(memoria)).toEqual({});
+  });
 });
 
 describe('filtriDa', () => {

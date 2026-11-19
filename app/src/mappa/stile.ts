@@ -3,11 +3,34 @@
 
 export const DOMINIO_TESSERE = 'https://tiles.openfreemap.org/';
 
-/** Stile chiaro e scuro di OpenFreeMap; la desaturazione la fa il CSS (--filtro-mappa). */
+/** Gli stili di OpenFreeMap usati dall'app (passo 10 e decisione del 19/11/2026) */
 export const STILI = {
   chiaro: `${DOMINIO_TESSERE}styles/positron`,
   scuro: `${DOMINIO_TESSERE}styles/dark`,
+  bright: `${DOMINIO_TESSERE}styles/bright`,
+  fiord: `${DOMINIO_TESSERE}styles/fiord`,
 } as const;
+
+/** Le scelte del colore della mappa nelle impostazioni (stesse di StileMappa in preferenze.ts) */
+export type SceltaMappa = 'tema' | 'chiara' | 'blu';
+
+export interface Aspetto {
+  url: string;
+  /** attenuata dal CSS (--filtro-mappa): i prezzi restano l'unica cosa colorata */
+  attenuata: boolean;
+  /** cartina scura: serve a scegliere i colori di gruppi e pallini */
+  scura: boolean;
+}
+
+/**
+ * Quale cartina mostrare. "Come il tema": chiara o scura insieme all'app, attenuata.
+ * "Chiara": Bright attenuata, anche con l'app scura. "Blu scura": Fiord con i suoi colori.
+ */
+export function aspettoMappa(scelta: SceltaMappa, appScura: boolean): Aspetto {
+  if (scelta === 'chiara') return { url: STILI.bright, attenuata: true, scura: false };
+  if (scelta === 'blu') return { url: STILI.fiord, attenuata: false, scura: true };
+  return appScura ? { url: STILI.scuro, attenuata: true, scura: true } : { url: STILI.chiaro, attenuata: true, scura: false };
+}
 
 /**
  * Ogni richiesta della mappa parte senza referrer (regola privacy 8). Le richieste verso domini

@@ -16,6 +16,7 @@ export const ICONE = {
   prezzoVecchio: 'clock',
   info: 'info',
   offline: 'wifi-off',
+  impostazioni: 'settings',
 } as const;
 
 export type NomeIcona = keyof typeof ICONE;

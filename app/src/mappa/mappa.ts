@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // Il "worker" di MapLibre (disegna le tessere in parallelo) è un file a parte che Vite non vede da solo:
 // senza questa riga nel sito pubblicato la mappa resta vuota. È incluso nell'app, non scaricato da fuori.
 import indirizzoWorker from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
-import { confiniRaggio, richiestaSicura, STILI, type Centro } from './stile.ts';
+import { confiniRaggio, richiestaSicura, type Aspetto, type Centro } from './stile.ts';
 import { cerchioCoperto, riquadroDi, scegliEtichette, type Riquadro } from './etichette.ts';
 import type { Voce } from '../lista/lista.ts';
 import { formattaCifre, type Unita } from '../lista/prezzo.ts';
@@ -24,6 +24,8 @@ export interface Mappa {
   puntoBlu(posizione: Centro | undefined): void;
   /** Evidenzia il prezzo del distributore scelto (posizione nella lista), o nessuno */
   evidenzia(indice: number | undefined): void;
+  /** Rilegge l'aspetto (tema o colore della mappa cambiati) e cambia cartina se serve */
+  aggiornaAspetto(): void;
 }
 
 /** Un colore del file dei token, letto al momento (cambia con il tema). */
@@ -43,12 +45,6 @@ const DISTACCO_PX = 12;
 /** Al massimo tanti prezzi per schermata: i più economici; gli altri distributori vanno nei gruppi */
 const MASSIMO_ETICHETTE = 15;
 
-/** Tema scuro se l'app è in tema scuro (automatico o scelto). */
-function scuro(): boolean {
-  const tema = document.documentElement.dataset['tema'];
-  return tema === 'scuro' || (tema !== 'chiaro' && matchMedia('(prefers-color-scheme: dark)').matches);
-}
-
 const MARGINE_PX = 24;
 
 setWorkerUrl(indirizzoWorker);
@@ -56,6 +52,7 @@ setWorkerUrl(indirizzoWorker);
 /**
  * alTocco: chiamata con la posizione nella lista del distributore toccato (etichetta o pallino),
  * oppure con undefined se si tocca la mappa vuota (per chiudere il riquadro).
+ * aspetto: quale cartina mostrare (dipende dal tema e dal colore scelto nelle impostazioni).
  * alloSpostamento: chiamata con il nuovo centro quando l'utente sposta o ingrandisce la mappa
  * (non quando la sposta l'app). Il centro resta sul telefono, come la posizione.
  */
@@ -65,10 +62,13 @@ export function creaMappa(
   raggioKm: number,
   alTocco: (indice: number | undefined) => void,
   alloSpostamento: (centro: Centro) => void,
+  aspetto: () => Aspetto,
 ): Mappa {
+  let attuale = aspetto();
+  contenitore.dataset['attenuata'] = String(attuale.attenuata);
   const mappa = new MappaLibre({
     container: contenitore,
-    style: scuro() ? STILI.scuro : STILI.chiaro,
+    style: attuale.url,
     bounds: confiniRaggio(centro, raggioKm),
     fitBoundsOptions: { padding: MARGINE_PX },
     attributionControl: { compact: true },
@@ -289,10 +289,19 @@ export function creaMappa(
     mappa.on('mouseleave', livello, () => (mappa.getCanvas().style.cursor = ''));
   }
 
-  // Il tema della mappa segue quello del telefono; i pallini si ricreano con i colori del nuovo tema
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    mappa.setStyle(scuro() ? STILI.scuro : STILI.chiaro, { diff: false });
-  });
+  /** Cambia cartina quando cambiano tema o colore scelto; gruppi e pallini si ricreano con i colori del tema */
+  function aggiornaAspetto(): void {
+    const nuovo = aspetto();
+    contenitore.dataset['attenuata'] = String(nuovo.attenuata);
+    if (nuovo.url !== attuale.url) mappa.setStyle(nuovo.url, { diff: false });
+    else if (mappa.getSource(SORGENTE)) {
+      // stessa cartina ma tema dell'app cambiato: si ridisegnano gruppi e pallini con i colori nuovi
+      for (const livello of [LIVELLO_NUMERI, LIVELLO_GRUPPI, LIVELLO]) mappa.removeLayer(livello);
+      mappa.removeSource(SORGENTE);
+      aggiungiPallini();
+    }
+    attuale = nuovo;
+  }
 
   return {
     inquadra(nuovo, km, vola = false) {
@@ -313,6 +322,7 @@ export function creaMappa(
       punto.hidden = !posizione;
       if (posizione) tu.setLngLat([posizione.lon, posizione.lat]);
     },
+    aggiornaAspetto,
     evidenzia(indice) {
       evidenziato = indice;
       for (const m of etichette) {

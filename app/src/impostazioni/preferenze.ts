@@ -1,5 +1,5 @@
-// Preferenze dell'utente, salvate sul telefono: SOLO le scelte (carburante, self/servito, raggio)
-// e se il tasto Naviga è già stato usato (per non ripetere la nota),
+// Preferenze dell'utente, salvate sul telefono: SOLO le scelte (carburante, self/servito, raggio,
+// tema e colore della mappa) e se il tasto Naviga è già stato usato (per non ripetere la nota),
 // MAI la posizione. Se la memoria del browser non è disponibile (navigazione privata,
 // dati cancellati), l'app funziona lo stesso e richiede la scelta.
 import type { Categoria } from '../../../condiviso/carburanti.ts';
@@ -12,7 +12,17 @@ export type CarburanteScelto = (typeof CARBURANTI_SCELTI)[number];
 
 export const MODALITA = ['self', 'servito', 'tutte'] as const satisfies readonly Modalita[];
 
+/** Tema dell'app: automatico (segue il telefono, se non c'è nulla di salvato), chiaro o scuro */
+export const TEMI = ['automatico', 'chiaro', 'scuro'] as const;
+export type Tema = (typeof TEMI)[number];
+
+/** Colore della mappa (decisione del 19/11/2026): come il tema, chiara (Bright attenuata) o blu scura (Fiord) */
+export const STILI_MAPPA = ['tema', 'chiara', 'blu'] as const;
+export type StileMappa = (typeof STILI_MAPPA)[number];
+
 export interface Preferenze {
+  tema?: Tema;
+  mappa?: StileMappa;
   carburante?: CarburanteScelto;
   modalita?: Modalita;
   raggioKm?: RaggioKm;
@@ -65,6 +75,11 @@ function pulisci(grezze: unknown): Preferenze {
   if (modalita) pulite.modalita = modalita;
   if (raggioKm) pulite.raggioKm = raggioKm;
   if (g['navigaUsato'] === true) pulite.navigaUsato = true;
+  const tema = unoTra(TEMI, g['tema']);
+  const mappa = unoTra(STILI_MAPPA, g['mappa']);
+  // i valori di partenza non si scrivono: "automatico" e "tema" sono quello che succede senza scelta
+  if (tema && tema !== 'automatico') pulite.tema = tema;
+  if (mappa && mappa !== 'tema') pulite.mappa = mappa;
   return pulite;
 }
 

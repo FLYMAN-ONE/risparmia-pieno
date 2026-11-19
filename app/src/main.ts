@@ -6,6 +6,7 @@ import './stile/struttura.css';
 import './stile/lista.css';
 import './stile/filtri.css';
 import './stile/mappa.css';
+import './stile/impostazioni.css';
 import { caricaPrezzi } from './dati/carica.ts';
 import { avvisoPrezzi } from './dati/data.ts';
 import { cercaVersioneNuova, registraCustode } from './offline/registra.ts';
@@ -22,6 +23,9 @@ import { appMappeDi } from './navigazione/naviga.ts';
 import { chiediPosizione, type Posizione } from './posizione/posizione.ts';
 import { entroRaggio, RAGGIO_INIZIALE, spostamentoSignificativo } from './vicini/vicini.ts';
 import type { Mappa } from './mappa/mappa.ts';
+import { aspettoMappa } from './mappa/stile.ts';
+import { disegnaImpostazioni } from './impostazioni/pagina.ts';
+import { STILI_MAPPA, TEMI } from './impostazioni/preferenze.ts';
 import type { Comune, DatiPrezzi } from '../../condiviso/formato.ts';
 import { cercaComuni } from './ricerca/cerca.ts';
 import { disegnaSuggerimenti, nomeComune } from './ricerca/suggerimenti.ts';
@@ -41,6 +45,7 @@ const barraAlta = document.querySelector<HTMLElement>('.barra-alta')!;
 const formRicerca = document.querySelector<HTMLFormElement>('[data-ricerca]')!;
 const campoRicerca = document.querySelector<HTMLInputElement>('[data-campo-ricerca]')!;
 const bottoneCerca = document.querySelector<HTMLButtonElement>('[data-cerca]')!;
+const bottoneImpostazioni = document.querySelector<HTMLButtonElement>('[data-apri-impostazioni]')!;
 
 // ——— Stato dell'app: tutto solo in memoria, tranne le preferenze ———
 /** I prezzi caricati */
@@ -99,8 +104,25 @@ function coloreBarraDiStato(): void {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', colore);
 }
 
+// ——— Tema e colore della mappa (fase 8) ———
+const telefonoScuro = matchMedia('(prefers-color-scheme: dark)');
+
+/** L'app è scura? Per scelta, oppure in automatico se il telefono è in modalità scura */
+function appScura(): boolean {
+  return preferenze.tema === 'scuro' || (preferenze.tema !== 'chiaro' && telefonoScuro.matches);
+}
+
+/** Applica il tema scelto (data-tema nel file dei token) e aggiorna barra di stato e mappa */
+function applicaTema(): void {
+  if (preferenze.tema === 'chiaro' || preferenze.tema === 'scuro') html.dataset['tema'] = preferenze.tema;
+  else delete html.dataset['tema'];
+  coloreBarraDiStato();
+  void mappa?.then((m) => m.aggiornaAspetto());
+}
+
 /** Cosa mostrare quando non c'è (ancora) una lista: la domanda del primo uso o l'invito. */
 function mostraPartenza(): void {
+  if (inImpostazioni) return; // si mostra alla chiusura delle impostazioni
   if (!preferenze.carburante) contenuto.innerHTML = disegnaSceltaCarburante();
   else contenuto.replaceChildren(invito);
 }
@@ -113,6 +135,7 @@ function mostraAvviso(): void {
 }
 
 function mostraErrore(): void {
+  if (inImpostazioni) return;
   contenuto.innerHTML = `<div class="messaggio" role="alert">${icona('offline')}<div>
     <p>Prezzi non disponibili. Controlla la connessione e riprova.</p>
     <button type="button" class="bottone secondario" data-riprova>Riprova</button></div></div>`;
@@ -181,6 +204,7 @@ function mostraPosizioneNonDisponibile(): void {
 async function intornoAMe(): Promise<void> {
   if (bottoneIntorno.getAttribute('aria-busy') === 'true') return; // ignora i tocchi doppi
   chiudiRicerca(false);
+  chiudiImpostazioni(false);
   bottoneIntorno.setAttribute('aria-busy', 'true');
   contenuto.innerHTML = '<p class="invito" role="status">Cerco la tua posizione…</p>';
 
@@ -213,7 +237,7 @@ function daDove(): string | undefined {
 
 function mostraRisultati(sfuma = false): void {
   const punto = centro();
-  if (!punto) return;
+  if (!punto || inImpostazioni) return; // con le impostazioni aperte: si ridisegna alla chiusura
   if (!dati) {
     // la posizione è arrivata prima dei prezzi: si mostra tutto appena finisce il caricamento
     contenuto.innerHTML = '<p class="invito" role="status">Carico i prezzi…</p>';
@@ -279,7 +303,9 @@ async function aggiornaMappa(vola = false): Promise<void> {
     const scritta = navigator.onLine ? 'Carico la mappa…' : 'Sei offline: la cartina si vedrà quando torna la rete.';
     vistaMappa.insertAdjacentHTML('afterbegin', `<p class="caricamento" role="status">${scritta}</p>`);
     mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => {
-      const nuova = creaMappa(vistaMappa, punto, raggioKm, apriRiquadro, mappaSpostata);
+      const nuova = creaMappa(vistaMappa, punto, raggioKm, apriRiquadro, mappaSpostata, () =>
+        aspettoMappa(preferenze.mappa ?? 'tema', appScura()),
+      );
       nuova.puntoBlu(tuSeiQui());
       return nuova;
     });
@@ -368,6 +394,7 @@ function importanza(comune: Comune): number {
 
 function apriRicerca(): void {
   chiudiMenu(true);
+  chiudiImpostazioni(false);
   mostraVista(false); // i suggerimenti stanno al posto della lista
   barraAlta.classList.add('cerca');
   formRicerca.hidden = false;
@@ -427,9 +454,66 @@ formRicerca.querySelector('[data-annulla-ricerca]')?.addEventListener('click', (
 });
 bottoneCerca.addEventListener('click', () => (formRicerca.hidden ? apriRicerca() : chiudiRicerca()));
 
+// ——— Impostazioni e info (fase 8) ———
+let inImpostazioni = false;
+/** Si torna alla mappa chiudendo le impostazioni, se si era lì */
+let eraInMappa = false;
+
+function apriImpostazioni(): void {
+  chiudiMenu(true);
+  chiudiRicerca(false);
+  eraInMappa = inMappa;
+  mostraVista(false);
+  inImpostazioni = true;
+  barraAlta.classList.add('impostazioni-aperte');
+  bottoneImpostazioni.setAttribute('aria-expanded', 'true');
+  contenuto.innerHTML = disegnaImpostazioni({
+    tema: preferenze.tema ?? 'automatico',
+    mappa: preferenze.mappa ?? 'tema',
+    ...(dati ? { dataPrezzi: dati.dataEstrazione } : {}),
+    versione: __VERSIONE_APP__,
+  });
+  scrollTo({ top: 0 });
+  contenuto.querySelector<HTMLElement>('#titolo-impostazioni')?.focus({ preventScroll: true });
+}
+
+/** ripristina: torna a quello che c'era prima (lista, mappa o partenza) */
+function chiudiImpostazioni(ripristina = true): void {
+  if (!inImpostazioni) return;
+  inImpostazioni = false;
+  barraAlta.classList.remove('impostazioni-aperte');
+  bottoneImpostazioni.removeAttribute('aria-expanded');
+  if (centro()) mostraRisultati();
+  else mostraPartenza();
+  if (!ripristina) return;
+  if (eraInMappa) mostraVista(true);
+  bottoneImpostazioni.focus({ preventScroll: true });
+}
+
+bottoneImpostazioni.addEventListener('click', () => (inImpostazioni ? chiudiImpostazioni() : apriImpostazioni()));
+
+/** Tema e colore della mappa cambiano subito, appena si tocca la scelta */
+contenuto.addEventListener('change', (evento) => {
+  const scelta = evento.target as HTMLInputElement;
+  const tema = TEMI.find((t) => t === scelta.value);
+  const stile = STILI_MAPPA.find((m) => m === scelta.value);
+  if (scelta.name === 'tema' && tema) preferenze = { ...preferenze, tema };
+  else if (scelta.name === 'mappa' && stile) preferenze = { ...preferenze, mappa: stile };
+  else return;
+  salvaPreferenze(preferenze);
+  applicaTema();
+});
+
 // ——— Tocchi ———
 bottoneIntorno.addEventListener('click', () => void intornoAMe());
-bottoneVista.addEventListener('click', () => mostraVista(!inMappa));
+bottoneVista.addEventListener('click', () => {
+  if (inImpostazioni) {
+    chiudiImpostazioni(false);
+    mostraVista(true);
+    return;
+  }
+  mostraVista(!inMappa);
+});
 
 riquadro.addEventListener('click', (evento) => {
   const bersaglio = evento.target as Element;
@@ -442,7 +526,8 @@ riquadro.addEventListener('click', (evento) => {
 });
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
-  if (!formRicerca.hidden) {
+  if (inImpostazioni) chiudiImpostazioni();
+  else if (!formRicerca.hidden) {
     chiudiRicerca();
     bottoneCerca.focus({ preventScroll: true });
   } else if (nelRiquadro) chiudiRiquadro();
@@ -450,6 +535,10 @@ document.addEventListener('keydown', (evento) => {
 
 contenuto.addEventListener('click', (evento) => {
   const bersaglio = evento.target as Element;
+  if (bersaglio.closest('[data-chiudi-impostazioni]')) {
+    chiudiImpostazioni();
+    return;
+  }
   if (bersaglio.closest('[data-riprova]')) {
     void avvia();
     return;
@@ -559,7 +648,7 @@ zonaRaggio.addEventListener('click', (evento) => {
 disegnaIcone();
 preparaMenu();
 disegnaBarraFiltri();
-coloreBarraDiStato();
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change', coloreBarraDiStato);
+applicaTema();
+telefonoScuro.addEventListener('change', applicaTema); // in automatico, il telefono passa da chiaro a scuro
 if (!preferenze.carburante) mostraPartenza();
 void avvia();

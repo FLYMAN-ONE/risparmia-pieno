@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import pacchetto from './package.json' with { type: 'json' };
 import { fileURLToPath } from 'node:url';
 import { defineConfig, type Plugin } from 'vitest/config';
 import { fileDaPrecaricare } from './app/src/offline/regole.ts';
@@ -33,6 +34,12 @@ function custodeConElencoFile(): Plugin {
 export default defineConfig({
   // L'app vive nella cartella app/
   root: 'app',
+  // La versione mostrata nella pagina Info: numero del pacchetto e giorno di costruzione (ora italiana)
+  define: {
+    __VERSIONE_APP__: JSON.stringify(
+      `${pacchetto.version} del ${new Date().toLocaleDateString('it-IT', { timeZone: 'Europe/Rome', day: '2-digit', month: '2-digit', year: 'numeric' })}`,
+    ),
+  },
   // Percorsi relativi: il sito vive in flyman-one.github.io/risparmia-pieno/
   base: './',
   plugins: [

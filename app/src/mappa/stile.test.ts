@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { confiniRaggio, richiestaSicura, STILI } from './stile.ts';
+import { aspettoMappa, confiniRaggio, DOMINIO_TESSERE, richiestaSicura, STILI } from './stile.ts';
 import { distanzaKm } from '../vicini/distanza.ts';
 
 describe('stile della mappa', () => {
@@ -47,5 +47,21 @@ describe('modulo della mappa', () => {
 
   it('non salva e non registra la posizione', () => {
     expect(codice).not.toMatch(/localStorage|sessionStorage|indexedDB|console\.|fetch\(/);
+  });
+});
+
+describe('aspettoMappa', () => {
+  it('come il tema: chiara o scura insieme all’app, attenuata', () => {
+    expect(aspettoMappa('tema', false)).toEqual({ url: STILI.chiaro, attenuata: true, scura: false });
+    expect(aspettoMappa('tema', true)).toEqual({ url: STILI.scuro, attenuata: true, scura: true });
+  });
+  it('chiara: Bright attenuata, anche con l’app scura', () => {
+    expect(aspettoMappa('chiara', true)).toEqual({ url: STILI.bright, attenuata: true, scura: false });
+  });
+  it('blu scura: Fiord con i suoi colori', () => {
+    expect(aspettoMappa('blu', false)).toEqual({ url: STILI.fiord, attenuata: false, scura: true });
+  });
+  it('tutti gli stili vengono da OpenFreeMap', () => {
+    for (const url of Object.values(STILI)) expect(url.startsWith(DOMINIO_TESSERE)).toBe(true);
   });
 });

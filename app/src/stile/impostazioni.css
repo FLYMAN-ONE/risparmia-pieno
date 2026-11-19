@@ -1,0 +1,56 @@
+/* Impostazioni e info (fase 8): ingranaggio in alto a destra e la pagina. Usa solo i token. */
+
+/* L'ingranaggio: sempre in fondo a destra nella riga dei filtri */
+.apri-impostazioni {
+  appearance: none; border: 0; background: none; color: var(--testo-2); cursor: pointer;
+  width: var(--tocco-min); height: var(--tocco-min); margin-left: auto; margin-right: calc(-1 * var(--s-2));
+  display: inline-flex; align-items: center; justify-content: center; border-radius: var(--raggio-bottone);
+  touch-action: manipulation; transition: transform var(--durata-tocco) var(--curva-tocco);
+}
+.apri-impostazioni:active { transform: scale(var(--scala-tocco)); }
+.apri-impostazioni svg { width: 24px; height: 24px; }
+.apri-impostazioni[aria-expanded='true'] { color: var(--testo); }
+/* Durante la ricerca l'ingranaggio lascia il posto al campo; con le impostazioni aperte i filtri non servono */
+.barra-alta.cerca .apri-impostazioni,
+.barra-alta.impostazioni-aperte .filtri,
+.barra-alta.impostazioni-aperte .raggio,
+.barra-alta.impostazioni-aperte .avviso-ritardo { display: none; }
+
+/* ——— La pagina ——— */
+.impostazioni { display: flex; flex-direction: column; gap: var(--s-6); padding-bottom: var(--s-6); }
+.impostazioni-testa { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.impostazioni h1 { margin: 0; font-size: var(--t-lista); font-weight: var(--peso-prezzo); line-height: 1.2; }
+.impostazioni h1:focus { outline: none; }
+.chiudi-impostazioni {
+  appearance: none; border: 0; background: none; color: var(--testo-2); cursor: pointer; flex: none;
+  width: var(--tocco-min); height: var(--tocco-min); margin-right: calc(-1 * var(--s-3));
+  display: inline-flex; align-items: center; justify-content: center; border-radius: var(--raggio-bottone);
+}
+.chiudi-impostazioni svg { width: 24px; height: 24px; }
+
+.gruppo-scelta { border: 0; margin: 0; padding: 0; min-width: 0; }
+.gruppo-scelta legend, .info h2 {
+  padding: 0; margin: 0 0 var(--s-2); font-size: var(--t-dettaglio); font-weight: var(--peso-medio);
+  color: var(--testo-2); text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+/* Scelta a segmenti: tre bottoni affiancati su una pista, quello scelto in rilievo */
+.segmenti {
+  display: flex; gap: var(--s-1); padding: var(--s-1);
+  background: var(--sfondo); border-radius: var(--raggio-bottone); box-shadow: inset 0 0 0 1px var(--linea);
+}
+.segmento { flex: 1; position: relative; display: flex; }
+.segmento input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.segmento span {
+  flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: calc(var(--tocco-min) - 2 * var(--s-1)); padding: var(--s-1) var(--s-2);
+  border-radius: calc(var(--raggio-bottone) - var(--s-1)); color: var(--testo-2); font-weight: var(--peso-medio);
+  transition: background-color var(--durata-menu) ease, color var(--durata-menu) ease;
+}
+.segmento input:checked + span { background: var(--superficie); color: var(--testo); box-shadow: var(--ombra-mappa); }
+.segmento input:focus-visible + span { outline: var(--focus); outline-offset: var(--focus-distanza); }
+.gruppo-scelta .nota { margin-top: var(--s-2); font-size: var(--t-dettaglio); color: var(--testo-2); }
+
+.info { display: flex; flex-direction: column; gap: var(--s-2); }
+.info h2:not(:first-child) { margin-top: var(--s-4); }
+.info p { color: var(--testo); }
