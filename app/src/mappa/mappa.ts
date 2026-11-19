@@ -48,6 +48,9 @@ export function creaMappa(contenitore: HTMLElement, centro: Centro, raggioKm: nu
   punto.setAttribute('aria-label', 'La tua posizione');
   const tu = new Marker({ element: punto }).setLngLat([centro.lon, centro.lat]).addTo(mappa);
 
+  // La scritta "Carico la mappa…" resta finché la cartina non è disegnata la prima volta
+  mappa.once('load', () => contenitore.querySelector('.caricamento')?.remove());
+
   // Il tema della mappa segue quello del telefono
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     mappa.setStyle(scuro() ? STILI.scuro : STILI.chiaro);

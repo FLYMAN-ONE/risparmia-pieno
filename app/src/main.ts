@@ -180,10 +180,8 @@ async function aggiornaMappa(vola = false): Promise<void> {
   const raggioKm = filtri()?.raggioKm ?? RAGGIO_INIZIALE;
   if (!mappa) {
     vistaMappa.innerHTML = '<p class="caricamento" role="status">Carico la mappa…</p>';
-    mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => {
-      vistaMappa.replaceChildren();
-      return creaMappa(vistaMappa, centro, raggioKm);
-    });
+    // la scritta resta sotto la mappa finché la cartina non la copre
+    mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => creaMappa(vistaMappa, centro, raggioKm));
     return;
   }
   (await mappa).inquadra(centro, raggioKm, vola);

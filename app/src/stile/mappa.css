@@ -4,7 +4,10 @@
 body.in-mappa { height: 100dvh; }
 .vista-mappa { flex: 1; position: relative; min-height: 0; background: var(--sfondo); }
 .vista-mappa[hidden] { display: none; }
-.vista-mappa .caricamento { padding: var(--s-6) var(--margine); text-align: center; color: var(--testo-2); }
+.vista-mappa .caricamento {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  padding: var(--s-6) var(--margine); text-align: center; color: var(--testo-2); background: var(--sfondo);
+}
 
 /* Passo 10: mappa desaturata, i prezzi sono l'unica cosa colorata */
 .vista-mappa .maplibregl-canvas { filter: var(--filtro-mappa); }
