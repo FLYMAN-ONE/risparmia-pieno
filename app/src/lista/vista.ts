@@ -6,6 +6,7 @@ import type { Lista, Ordine, Voce } from './lista.ts';
 import { linkNavigazione, type AppMappe } from '../navigazione/naviga.ts';
 import { formattaCifre, formattaDifferenza, formattaKm } from './prezzo.ts';
 import { esc, indirizzoBreve } from './testo.ts';
+import { RAGGI_KM } from '../vicini/vicini.ts';
 
 /** Il nome da mostrare: il marchio scritto (niente loghi). Le pompe bianche non hanno marchio. */
 export function nomeDi(voce: Voce): string {
@@ -27,6 +28,12 @@ function naviga(voce: Voce, app: AppMappe, conNota: boolean): string {
     ${conNota ? '<p class="nota-naviga">Naviga apre Mappe o Google Maps con la destinazione.</p>' : ''}`;
 }
 
+/** "−0,04 € rispetto alla media"; niente riga se non c'è differenza (per esempio un solo distributore). */
+function confronto(differenza: number): string {
+  if (Math.round(differenza * 100) === 0) return '';
+  return `<p class="delta"><b>${formattaDifferenza(differenza)}</b> rispetto alla media</p>`;
+}
+
 function eroe(voce: Voce, media: number, unita: string, navigazione: OpzioniVista['navigazione']): string {
   const differenza = voce.euro - media;
   const comune = voce.distributore.comune.nome;
@@ -41,7 +48,7 @@ function eroe(voce: Voce, media: number, unita: string, navigazione: OpzioniVist
       ${naviga(voce, navigazione.app, navigazione.conNota)}
     </div>
     ${voce.vecchio ? `<p class="dove vecchio">${icona('prezzoVecchio')}Prezzo comunicato il ${giornoBreve(voce.comunicato)}</p>` : ''}
-    <p class="delta"><b>${formattaDifferenza(differenza)}</b> rispetto alla media</p>
+    ${confronto(differenza)}
   </article>`;
 }
 
@@ -75,9 +82,12 @@ export interface OpzioniVista {
 export function disegnaLista(lista: Lista, opzioni: OpzioniVista): string {
   const { migliore, media } = lista;
   if (!migliore) {
-    // Testo del passo 11. "Allarga a 10 km" arriva con i casi limite.
+    // Testo del passo 11, con il bottone per allargare al raggio successivo (se c'è)
+    const piuLargo = RAGGI_KM.find((r) => r > opzioni.raggioKm);
     return `<div class="messaggio" role="status">${icona('cerca')}<div>
-      <p>Nessun distributore entro ${String(opzioni.raggioKm)} km.</p></div></div>`;
+      <p>Nessun distributore entro ${String(opzioni.raggioKm)} km.</p>
+      ${piuLargo ? `<button type="button" class="bottone" data-allarga="${String(piuLargo)}">Allarga a ${String(piuLargo)} km</button>` : ''}
+      </div></div>`;
   }
   const altri = opzioni.voci.filter((v) => v !== migliore);
   const quanti = lista.voci.length;

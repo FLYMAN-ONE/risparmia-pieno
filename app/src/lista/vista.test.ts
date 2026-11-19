@@ -102,3 +102,27 @@ describe('disegnaLista', () => {
     expect(html).toContain('Nessun distributore entro 5 km.');
   });
 });
+
+describe('casi limite', () => {
+  const vuota: Lista = { voci: [], migliore: undefined, media: 0 };
+
+  it('nessun risultato: propone il raggio successivo', () => {
+    const html = disegnaLista(vuota, { ...opzioni, voci: [] });
+    expect(html).toContain('Nessun distributore entro 5 km.');
+    expect(html).toContain('data-allarga="10">Allarga a 10 km</button>');
+    expect(disegnaLista(vuota, { ...opzioni, raggioKm: 10, voci: [] })).toContain('Allarga a 15 km');
+  });
+
+  it('a 15 km non c\'è un raggio più largo: solo il messaggio', () => {
+    const html = disegnaLista(vuota, { ...opzioni, raggioKm: 15, voci: [] });
+    expect(html).toContain('Nessun distributore entro 15 km.');
+    expect(html).not.toContain('data-allarga');
+  });
+
+  it('un solo distributore: niente confronto con la media', () => {
+    const solo = voce(1, 1.689);
+    const html = disegnaLista({ voci: [solo], migliore: solo, media: 1.689 }, { ...opzioni, voci: [solo] });
+    expect(html).not.toContain('rispetto alla media');
+    expect(html).toContain('1 distributore entro 5 km');
+  });
+});

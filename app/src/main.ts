@@ -164,6 +164,12 @@ contenuto.addEventListener('click', (evento) => {
     }
     return;
   }
+  const allarga = raggioDaTesto(bersaglio.closest<HTMLElement>('[data-allarga]')?.dataset['allarga']);
+  if (allarga) {
+    cambiaRaggio(allarga);
+    disegnaBarraFiltri(); // lo slider si sposta sul nuovo raggio
+    return;
+  }
   if (bersaglio.closest('[data-ordina]')) {
     ordine = ordine === 'prezzo' ? 'distanza' : 'prezzo';
     mostraRisultati(true);
