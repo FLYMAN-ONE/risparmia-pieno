@@ -24,3 +24,10 @@ body { display: flex; flex-direction: column; }
   padding: var(--s-3) var(--margine) calc(var(--s-3) + env(safe-area-inset-bottom, 0px));
 }
 .barra-bassa .bottone { flex: 1; }
+
+/* "Intorno a me" mentre cerca la posizione: l'icona pulsa (passo 9). Ferma con "Riduci movimento". */
+[data-intorno][aria-busy='true'] svg { animation: cerca 1s ease-in-out infinite; }
+@keyframes cerca { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) {
+  [data-intorno][aria-busy='true'] svg { animation: none; opacity: 0.35; }
+}
