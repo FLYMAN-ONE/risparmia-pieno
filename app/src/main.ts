@@ -14,7 +14,8 @@ import { apriMenu, chiudiMenu, menuAperto, preparaMenu } from './interfaccia/men
 import { cambiaCarburante, filtriDa, leggiPreferenze, salvaPreferenze, type Filtri, type Preferenze } from './impostazioni/preferenze.ts';
 import { RAGGI_KM, type RaggioKm } from './vicini/vicini.ts';
 import { carburanteToccato, disegnaSceltaCarburante } from './impostazioni/scelta-carburante.ts';
-import { ordina, preparaLista, type Ordine } from './lista/lista.ts';
+import { ordina, preparaLista, type Lista, type Ordine } from './lista/lista.ts';
+import { unitaDi } from '../../condiviso/carburanti.ts';
 import { disegnaLista } from './lista/vista.ts';
 import { appMappeDi } from './navigazione/naviga.ts';
 import { chiediPosizione, type Posizione } from './posizione/posizione.ts';
@@ -45,6 +46,8 @@ let ordine: Ordine = 'prezzo';
 let inMappa = false;
 /** La mappa, creata al primo tocco di "Mappa" */
 let mappa: Promise<Mappa> | undefined;
+/** L'ultima lista calcolata: la mappa mostra gli stessi distributori */
+let ultimaLista: Lista | undefined;
 
 /** I filtri in uso, se il carburante è già stato scelto. */
 function filtri(): Filtri | undefined {
@@ -146,6 +149,7 @@ function mostraRisultati(sfuma = false): void {
   }
   const { carburante, modalita, raggioKm } = attuali;
   const lista = preparaLista(entroRaggio(dati.distributori, posizione, raggioKm), carburante, modalita);
+  ultimaLista = lista;
   contenuto.innerHTML = disegnaLista(lista, {
     carburante,
     raggioKm,
@@ -155,6 +159,7 @@ function mostraRisultati(sfuma = false): void {
   });
   if (sfuma) contenuto.querySelector('.righe')?.classList.add('aggiornata');
   disegnaBottoneVista();
+  void prezziSullaMappa();
 }
 
 // ——— Lista e mappa ———
@@ -182,9 +187,17 @@ async function aggiornaMappa(vola = false): Promise<void> {
     vistaMappa.innerHTML = '<p class="caricamento" role="status">Carico la mappa…</p>';
     // la scritta resta sotto la mappa finché la cartina non la copre
     mappa = import('./mappa/mappa.ts').then(({ creaMappa }) => creaMappa(vistaMappa, centro, raggioKm));
+    void prezziSullaMappa();
     return;
   }
   (await mappa).inquadra(centro, raggioKm, vola);
+}
+
+/** Passa alla mappa i distributori della lista (dopo ogni cambio di filtro o posizione). */
+async function prezziSullaMappa(): Promise<void> {
+  const carburante = filtri()?.carburante;
+  if (!mappa || !ultimaLista || !carburante) return;
+  (await mappa).mostraPrezzi(ultimaLista.voci, unitaDi(carburante));
 }
 
 // ——— Tocchi ———

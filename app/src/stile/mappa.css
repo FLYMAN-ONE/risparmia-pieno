@@ -7,6 +7,7 @@ body.in-mappa { height: 100dvh; }
 .vista-mappa .caricamento {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
   padding: var(--s-6) var(--margine); text-align: center; color: var(--testo-2); background: var(--sfondo);
+  font: inherit; font-family: var(--font-testo); font-size: var(--t-normale); /* MapLibre impone il suo carattere */
 }
 
 /* Passo 10: mappa desaturata, i prezzi sono l'unica cosa colorata */
@@ -17,7 +18,19 @@ body.in-mappa { height: 100dvh; }
   width: 18px; height: 18px; border-radius: 50%;
   background: var(--posizione); border: 3px solid var(--superficie);
   box-shadow: 0 0 0 8px color-mix(in srgb, var(--posizione) 20%, transparent);
+  z-index: 3; /* sempre sopra le etichette dei prezzi */
 }
 
 /* Bottone Lista/Mappa: accanto a "Intorno a me", più stretto */
 .barra-bassa .cambia-vista { flex: none; }
+
+/* Etichette col prezzo (passo 10): stesso colore di fascia della lista, una sola ombra per staccarle dalla mappa */
+.etichetta-prezzo {
+  font-family: var(--font-prezzo); font-weight: var(--peso-prezzo); font-variant-numeric: tabular-nums;
+  font-size: var(--t-normale); line-height: 1; white-space: nowrap;
+  padding: var(--s-1) var(--s-2); border-radius: var(--raggio-etichetta);
+  background: var(--superficie); color: var(--media); box-shadow: var(--ombra-mappa);
+}
+.etichetta-prezzo.fascia-conveniente { color: var(--conveniente); }
+.etichetta-prezzo.fascia-caro { color: var(--caro); }
+.etichetta-prezzo.e-vecchio { opacity: var(--opacita-vecchio); }
