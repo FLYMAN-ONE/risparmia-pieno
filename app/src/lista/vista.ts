@@ -9,6 +9,12 @@ import { esc, indirizzoBreve } from './testo.ts';
 import { RAGGI_KM } from '../vicini/vicini.ts';
 import { disegnaPrezzi } from './dettagli.ts';
 
+/** L'unità dopo il prezzo: "€/l" sullo schermo, "euro al litro" per VoiceOver e TalkBack */
+export function unitaDelPrezzo(unita: string, visibile = true): string {
+  const parlata = `<span class="solo-lettori"> euro al ${unita === 'kg' ? 'chilo' : 'litro'}</span>`;
+  return visibile ? `<span class="unita" aria-hidden="true"> €/${unita}</span>${parlata}` : parlata;
+}
+
 /** Il nome da mostrare: il marchio scritto (niente loghi). Le pompe bianche non hanno marchio. */
 export function nomeDi(voce: Voce): string {
   const { bandiera } = voce.distributore;
@@ -49,7 +55,7 @@ function eroe(voce: Voce, media: number, unita: string, opzioni: OpzioniVista): 
   const comune = voce.distributore.comune.nome;
   return `<article class="eroe fascia-${voce.fascia}${voce.vecchio ? ' e-vecchio' : ''}">
     <p class="etichetta">Il più conveniente</p>
-    <p class="prezzo">${formattaCifre(voce.euro)}<span class="unita"> €/${unita}</span></p>
+    <p class="prezzo">${formattaCifre(voce.euro)}${unitaDelPrezzo(unita)}</p>
     <div class="eroe-sotto">
       <div class="eroe-dove">
         <p class="chi">${esc(nomeDi(voce))} · ${formattaKm(voce.km)}</p>
@@ -78,7 +84,7 @@ function riga(voce: Voce, opzioni: OpzioniVista): string {
   const aperto = opzioni.aperto === voce.distributore.id;
   return `<li class="riga fascia-${voce.fascia}${voce.vecchio ? ' e-vecchio' : ''}${aperto ? ' aperta' : ''}">
     <button type="button" class="riga-apri" data-apri="${id}" aria-expanded="${String(aperto)}"${aperto ? ` aria-controls="prezzi-${id}"` : ''}>
-      <span class="prezzo">${formattaCifre(voce.euro)}</span>
+      <span class="prezzo">${formattaCifre(voce.euro)}${unitaDelPrezzo(unitaDi(opzioni.carburante), false)}</span>
       <span class="chi"><span class="nome">${esc(nomeDi(voce))}</span>
         <span class="dove">${esc(indirizzoBreve(voce.distributore.indirizzo, voce.distributore.comune.nome))}</span></span>
       ${quandoOVecchio(voce)}
@@ -145,7 +151,7 @@ export function disegnaRiquadro(
   return `<div class="riquadro-testa fascia-${voce.fascia}${voce.vecchio ? ' e-vecchio' : ''}">
       <div>
         <p class="chi">${esc(nomeDi(voce))} · ${formattaKm(voce.km)}</p>
-        <p class="prezzo">${formattaCifre(voce.euro)}<span class="unita"> €/${unitaDi(opzioni.carburante)}</span></p>
+        <p class="prezzo">${formattaCifre(voce.euro)}${unitaDelPrezzo(unitaDi(opzioni.carburante))}</p>
       </div>
       <button type="button" class="chiudi-riquadro" data-chiudi-riquadro aria-label="Chiudi">${icona('chiudi')}</button>
     </div>

@@ -137,6 +137,9 @@
     --durata-pannello: 0ms;
     --durata-lista: 0ms;
     --durata-chiusura: 0ms;
+    --durata-menu: 0ms;          /* menu, riquadro della mappa, scelte a segmenti, freccia delle pillole */
+    --durata-menu-chiusura: 0ms;
+    --durata-tocco: 0ms;
     --scala-tocco: 1;
   }
 }

@@ -271,8 +271,24 @@ function mostraRisultati(sfuma = false): void {
 /** Il bottone Lista/Mappa compare quando c'è una posizione e c'è qualcosa da mostrare. */
 function disegnaBottoneVista(): void {
   bottoneVista.hidden = !(posizione && dati && filtri());
-  bottoneVista.innerHTML = inMappa ? `${icona('lista')}Lista` : `${icona('mappa')}Mappa`;
+  bottoneVista.innerHTML = inMappa
+    ? `${icona('lista')}<span class="testo-vista">Lista</span>`
+    : `${icona('mappa')}<span class="testo-vista">Mappa</span>`;
+  adattaBarraBassa();
 }
+
+/** Con il testo del telefono grande, i tre bottoni in basso non stanno in una riga:
+    "Mappa"/"Lista" resta solo icona (il nome lo legge comunque VoiceOver). Se non basta, va a capo con il nome. */
+const barraBassa = document.querySelector<HTMLElement>('.barra-bassa')!;
+function adattaBarraBassa(): void {
+  barraBassa.classList.remove('compatta');
+  if (bottoneVista.hidden) return;
+  if (bottoneVista.offsetTop <= bottoneIntorno.offsetTop) return;
+  barraBassa.classList.add('compatta');
+  // se va a capo comunque, sulla sua riga c'è spazio per il nome: lo si rimette
+  if (bottoneVista.offsetTop > bottoneIntorno.offsetTop) barraBassa.classList.remove('compatta');
+}
+new ResizeObserver(adattaBarraBassa).observe(barraBassa);
 
 function mostraVista(mappaSi: boolean): void {
   inMappa = mappaSi;

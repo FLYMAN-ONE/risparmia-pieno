@@ -25,11 +25,11 @@ body { display: flex; flex-direction: column; }
 
 .barra-bassa {
   position: sticky; bottom: 0; z-index: 10;
-  display: flex; gap: var(--s-2);
+  display: flex; flex-wrap: wrap; gap: var(--s-2); /* con il testo molto grande, Mappa va sotto invece di uscire */
   background: var(--superficie); border-top: 1px solid var(--linea);
   padding: var(--s-3) var(--margine) calc(var(--s-3) + env(safe-area-inset-bottom, 0px));
 }
-.barra-bassa .bottone { flex: 1; }
+.barra-bassa .bottone { flex: 1 1 auto; }
 
 /* "Intorno a me" mentre cerca la posizione: l'icona pulsa (passo 9). Ferma con "Riduci movimento". */
 [data-intorno][aria-busy='true'] svg { animation: cerca 1s ease-in-out infinite; }
@@ -71,3 +71,9 @@ body { display: flex; flex-direction: column; }
 .suggerimento svg { width: 20px; height: 20px; flex: none; color: var(--testo-2); }
 .suggerimento .nome { flex: 1; font-weight: var(--peso-medio); }
 .suggerimento .provincia { font-size: var(--t-dettaglio); color: var(--testo-2); }
+
+/* Testo molto grande: "Mappa"/"Lista" diventa solo icona, come la lente (il nome resta per VoiceOver) */
+.barra-bassa.compatta .cambia-vista { width: calc(var(--tocco-min) + var(--s-2)); padding: 0; }
+.barra-bassa.compatta .testo-vista {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}

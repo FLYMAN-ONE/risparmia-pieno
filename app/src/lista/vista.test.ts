@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { DistributoreApp } from '../../../condiviso/formato.ts';
 import type { Lista, Voce } from './lista.ts';
-import { disegnaLista, disegnaRiquadro, nomeDi } from './vista.ts';
+import { disegnaLista, disegnaRiquadro, nomeDi, unitaDelPrezzo } from './vista.ts';
 
 function voce(id: number, euro: number, altro: Partial<DistributoreApp> = {}, vecchio = false): Voce {
   return {
@@ -47,7 +47,7 @@ describe('disegnaLista', () => {
   it('mette il più conveniente in grande, con la differenza dalla media', () => {
     const html = disegnaLista(lista, { ...opzioni, voci: lista.voci });
     expect(html).toContain('Il più conveniente');
-    expect(html).toContain('1,689<span class="unita"> €/l</span>');
+    expect(html).toContain('1,689<span class="unita" aria-hidden="true"> €/l</span><span class="solo-lettori"> euro al litro</span>');
     expect(html).toContain('−0,04 €');
     expect(html).toContain('Via Roma 1, Gallarate');
   });
@@ -161,7 +161,7 @@ describe('disegnaRiquadro (mappa)', () => {
   it('nome, distanza, prezzo, confronto, chiudi e Naviga', () => {
     const html = disegnaRiquadro(v, 1.729, { carburante: 'gasolio', app: 'apple', tutti: false });
     expect(html).toContain('Q8 · 1,2 km');
-    expect(html).toContain('1,689<span class="unita"> €/l</span>');
+    expect(html).toContain('1,689<span class="unita" aria-hidden="true"> €/l</span><span class="solo-lettori"> euro al litro</span>');
     expect(html).toContain('−0,04 €');
     expect(html).toContain('data-chiudi-riquadro aria-label="Chiudi"');
     expect(html).toContain('data-naviga');
@@ -191,5 +191,12 @@ describe('risultati di un comune cercato', () => {
     expect(disegnaLista(lista, { ...opzioni, voci: [primo], da: 'dal centro della mappa' })).toContain(
       '1 distributore entro 5 km dal centro della mappa',
     );
+  });
+});
+
+describe('unitaDelPrezzo', () => {
+  it('sullo schermo €/l o €/kg, per i lettori di schermo in parole', () => {
+    expect(unitaDelPrezzo('kg')).toBe('<span class="unita" aria-hidden="true"> €/kg</span><span class="solo-lettori"> euro al chilo</span>');
+    expect(unitaDelPrezzo('l', false)).toBe('<span class="solo-lettori"> euro al litro</span>');
   });
 });

@@ -19,7 +19,7 @@
 .eroe .dove, .eroe .delta { font-size: var(--t-dettaglio); color: var(--testo-2); }
 .eroe .delta { margin-top: var(--s-1); }
 .eroe-sotto { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-3); }
-.eroe-dove { flex: 1; min-width: 0; }
+.eroe-dove { flex: 1 1 10em; min-width: 0; } /* con il testo grande Naviga va sotto e il nome resta largo */
 .naviga { text-decoration: none; flex: none; }
 .nota-naviga { flex-basis: 100%; font-size: var(--t-dettaglio); color: var(--testo-2); }
 .eroe.fascia-conveniente .delta b { color: var(--conveniente); font-weight: var(--peso-medio); }
