@@ -31,11 +31,11 @@ I punti segnati con ✋ li fa o li conferma chi gestisce l'app, sul proprio tele
 
 ## 5. Prova completa sui telefoni ✋
 
-- [ ] **iPhone:** installata dalla Home; Intorno a me, filtri, ricerca, mappa, Naviga, impostazioni; in modalità aereo si apre con gli ultimi prezzi.
-- [ ] **Android:** installata da Chrome (menu ⋮ → Installa app); stesse prove. *Se in famiglia non c'è un Android, scrivilo qui.*
+- [x] **iPhone:** installata dalla Home; Intorno a me, filtri, ricerca, mappa, Naviga, impostazioni; in modalità aereo si apre con gli ultimi prezzi. *22/11/2026*
+- [x] **Android:** installata da Chrome (menu ⋮ → Installa app); stesse prove. *22/11/2026*
 
 ## Firma
 
 L'app è pronta per la famiglia.
 
-Firmato: ______________________   Data: ____________
+Firmato: approvata da chi gestisce l'app, dopo le prove sui telefoni   Data: 22/11/2026
